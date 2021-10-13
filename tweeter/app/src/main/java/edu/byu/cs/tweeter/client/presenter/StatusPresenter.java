@@ -18,7 +18,16 @@ public class StatusPresenter extends Presenter implements StatusService.PostStat
     }
 
     public void postStatus(AuthToken authToken, Status status) {
-        new StatusService().postStatus(authToken, status, this);
+        statusView.displayInfoMessage("Posting Status...");
+        getStatusService().postStatus(authToken, status, this);
+    }
+
+    public StatusService getStatusService() {
+        return new StatusService();
+    }
+
+    public AuthToken getAuthToken() {
+        return new AuthToken("test", "test");
     }
 
     @Override

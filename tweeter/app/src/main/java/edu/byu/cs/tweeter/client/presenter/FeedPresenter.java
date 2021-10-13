@@ -36,37 +36,4 @@ public class FeedPresenter extends PagedPresenter<Status> implements StatusServi
     public String getDescription() {
         return "Get feed";
     }
-
-
-
-
-
-//    @Override
-//    public void getFailed(String message) {
-//        feedView.displayErrorMessage("Get feed failed: " + message);
-//    }
-//
-//    @Override
-//    public void getThrewException(Exception ex) {
-//        feedView.displayErrorMessage("Get feed threw exception: " + ex.getMessage());
-//    }
-//
-//    private class UserObserver implements UserService.GetUserObserver {
-//        @Override
-//        public void getUserSucceeded(User user) {
-//            feedView.navigateToUser(user);
-//        }
-//
-//        @Override
-//        public void getFailed(String message) {
-//            feedView.displayErrorMessage(message);
-//        }
-//
-//        @Override
-//        public void getThrewException(Exception ex) {
-//            feedView.displayErrorMessage("Failed to get user's profile because of exception: " + ex.getMessage());
-//        }
-//    }
-
-
 }

@@ -48,7 +48,7 @@ public abstract class PagedPresenter<T> extends Presenter implements UserService
     }
 
     @Override
-    public void getItemsSucceeded(boolean hasMorePages, T lastItem) {
+    public void  getItemsSucceeded(boolean hasMorePages, T lastItem) {
         pagedView.setLoading(false);
         this.hasMorePages = hasMorePages;
         this.isLoading = false;

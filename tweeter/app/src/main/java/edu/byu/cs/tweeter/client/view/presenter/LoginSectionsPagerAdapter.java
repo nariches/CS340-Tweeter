@@ -1,4 +1,4 @@
-package edu.byu.cs.tweeter.client.view.login;
+package edu.byu.cs.tweeter.client.view.presenter;
 
 import android.content.Context;
 import android.util.Log;
