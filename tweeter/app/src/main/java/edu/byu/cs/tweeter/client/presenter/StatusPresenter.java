@@ -26,9 +26,9 @@ public class StatusPresenter extends Presenter implements StatusService.PostStat
         return new StatusService();
     }
 
-    public AuthToken getAuthToken() {
-        return new AuthToken("test", "test");
-    }
+//    public AuthToken getAuthToken() {
+//        return new AuthToken("test", "test");
+//    }
 
     @Override
     public void postStatusSucceeded() {
