@@ -2,8 +2,11 @@ package edu.byu.cs.tweeter.client.backgroundTask;
 
 import android.os.Handler;
 
+import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.LoginRequest;
+import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.util.Pair;
 
 /**
@@ -17,8 +20,19 @@ public class LoginTask extends AuthenticationTask {
 
     @Override
     protected Pair<User, AuthToken> runAuthenticationTask() {
-        User loggedInUser = getFakeData().getFirstUser();
-        AuthToken authToken = getFakeData().getAuthToken();
-        return new Pair<>(loggedInUser, authToken);
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        try {
+            LoginResponse loginResponse = new ServerFacade().login(loginRequest, "/login");
+            if (loginResponse.isSuccess()) {
+                return new Pair<>(loginResponse.getUser(), loginResponse.getAuthToken());
+            }
+            else {
+                sendFailedMessage(loginResponse.getMessage());
+            }
+        }
+        catch (Exception e) {
+            sendExceptionMessage(e);
+        }
+        return null;
     }
 }
