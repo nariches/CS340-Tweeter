@@ -23,20 +23,27 @@ public class GetFollowingTask extends PagedUserTask {
 
     @Override
     protected Pair<List<User>, Boolean> getItems() {
-//        FollowingRequest followingRequest = new FollowingRequest(authToken,
-//                getTargetUser().getAlias(), getLimit(), getLastItem().getAlias());
-//        try {
-//            FollowingResponse followingResponse = new ServerFacade().getFollowees(followingRequest,
-//                    "/getfollowing");
-//            if (followingResponse.isSuccess()) {
-//                return new Pair<>(followingResponse.getFollowees(),
-//                        followingResponse.getHasMorePages());
-//            }
-//        }
-//        catch (Exception e) {
-//            sendExceptionMessage(e);
-//        }
-//        return null;
-        return getFakeData().getPageOfUsers(getLastItem(), getLimit(), getTargetUser());
+        String lastItemAlias;
+        if (getLastItem() != null) {
+            lastItemAlias = getLastItem().getAlias();
+        }
+        else {
+            lastItemAlias = null;
+        }
+        FollowingRequest followingRequest = new FollowingRequest(authToken,
+                getTargetUser().getAlias(), getLimit(), lastItemAlias);
+        try {
+            FollowingResponse followingResponse = new ServerFacade().getFollowees(followingRequest,
+                    "/getfollowing");
+            if (followingResponse.isSuccess()) {
+                return new Pair<>(followingResponse.getFollowees(),
+                        followingResponse.getHasMorePages());
+            }
+        }
+        catch (Exception e) {
+            sendExceptionMessage(e);
+        }
+        return null;
+        //return getFakeData().getPageOfUsers(getLastItem(), getLimit(), getTargetUser());
     }
 }

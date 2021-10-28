@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.server.service;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
@@ -32,6 +33,10 @@ public class FollowService {
 
     public GetFollowingCountResponse getFollowingCount(String username, AuthToken authToken) {
         return getFollowingDAO().getFollowingCount(username, authToken);
+    }
+
+    public FollowResponse follow(AuthToken authToken, String username) {
+        return getFollowingDAO().follow(authToken, username);
     }
 
     /**

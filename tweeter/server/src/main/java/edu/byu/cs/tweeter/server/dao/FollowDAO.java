@@ -6,6 +6,7 @@ import java.util.List;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
@@ -37,6 +38,11 @@ public class FollowDAO {
     public GetFollowingCountResponse getFollowingCount(String username, AuthToken authToken) {
         assert username != null;
         return new GetFollowingCountResponse(getDummyFollowees().size());
+    }
+
+    public FollowResponse follow(AuthToken authToken, String username) {
+        assert username != null;
+        return new FollowResponse();
     }
 
     /**
