@@ -52,6 +52,7 @@ public abstract class PagedPresenter<T> extends Presenter implements UserService
         pagedView.setLoading(false);
         this.hasMorePages = hasMorePages;
         this.isLoading = false;
+        this.lastItem = lastItem;
     }
 
     public void getUser(String alias) {

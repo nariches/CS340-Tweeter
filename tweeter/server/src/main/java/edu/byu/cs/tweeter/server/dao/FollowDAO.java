@@ -3,9 +3,11 @@ package edu.byu.cs.tweeter.server.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
+import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
 /**
@@ -24,6 +26,11 @@ public class FollowDAO {
         // TODO: uses the dummy data.  Replace with a real implementation.
         assert follower != null;
         return getDummyFollowees().size();
+    }
+
+    public GetFollowersCountResponse getFollowersCount(String username, AuthToken authToken) {
+        assert username != null;
+        return new GetFollowersCountResponse(getDummyFollowers().size());
     }
 
     /**
@@ -98,6 +105,10 @@ public class FollowDAO {
      * @return the followees.
      */
     List<User> getDummyFollowees() {
+        return getFakeData().getFakeUsers();
+    }
+
+    List<User> getDummyFollowers() {
         return getFakeData().getFakeUsers();
     }
 

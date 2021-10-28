@@ -2,8 +2,11 @@ package edu.byu.cs.tweeter.client.backgroundTask;
 
 import android.os.Handler;
 
+import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
+import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.util.Pair;
 
 /**
@@ -36,8 +39,29 @@ public class RegisterTask extends AuthenticationTask {
 
     @Override
     protected Pair<User, AuthToken> runAuthenticationTask() {
-        User registeredUser = getFakeData().getFirstUser();
-        AuthToken authToken = getFakeData().getAuthToken();
-        return new Pair<>(registeredUser, authToken);
+        RegisterRequest registerRequest = new RegisterRequest(firstName, lastName, username,
+                password, image);
+        try {
+            RegisterResponse registerResponse = new ServerFacade().register(registerRequest,
+                    "/register");
+            if (registerResponse.isSuccess()) {
+                return new Pair<>(registerResponse.getRegisteredUser(),
+                        registerResponse.getAuthToken());
+            }
+            else {
+                sendFailedMessage(registerResponse.getMessage());
+            }
+        }
+        catch (Exception e) {
+            sendExceptionMessage(e);
+        }
+
+
+
+
+//        User registeredUser = getFakeData().getFirstUser();
+//        AuthToken authToken = getFakeData().getAuthToken();
+//        return new Pair<>(registeredUser, authToken);
+        return null;
     }
 }

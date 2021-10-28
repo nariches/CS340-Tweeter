@@ -13,7 +13,7 @@ public abstract class GetCountTask extends AuthorizedTask{
      * The user whose count is being retrieved.
      * (This can be any user, not just the currently logged-in user.)
      */
-    private final User targetUser;
+    protected final User targetUser;
 
     private int count;
 
