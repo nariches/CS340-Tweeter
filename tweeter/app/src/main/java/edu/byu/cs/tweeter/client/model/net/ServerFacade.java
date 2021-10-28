@@ -5,10 +5,12 @@ import java.io.IOException;
 import edu.byu.cs.tweeter.model.net.TweeterRemoteException;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
 import edu.byu.cs.tweeter.model.net.request.GetFollowersCountRequest;
+import edu.byu.cs.tweeter.model.net.request.GetFollowingCountRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
+import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 
@@ -53,6 +55,18 @@ public class ServerFacade {
                                                        String urlPath) throws IOException, TweeterRemoteException {
         GetFollowersCountResponse response = clientCommunicator.doPost(urlPath, request, null,
                 GetFollowersCountResponse.class);
+
+        if(response.isSuccess()) {
+            return response;
+        } else {
+            throw new RuntimeException(response.getMessage());
+        }
+    }
+
+    public GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest request,
+                                                       String urlPath) throws IOException, TweeterRemoteException {
+        GetFollowingCountResponse response = clientCommunicator.doPost(urlPath, request, null,
+                GetFollowingCountResponse.class);
 
         if(response.isSuccess()) {
             return response;
