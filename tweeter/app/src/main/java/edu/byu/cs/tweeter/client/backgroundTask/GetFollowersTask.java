@@ -4,8 +4,11 @@ import android.os.Handler;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
+import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.util.Pair;
 
 /**
@@ -20,6 +23,28 @@ public class GetFollowersTask extends PagedUserTask {
 
     @Override
     protected Pair<List<User>, Boolean> getItems() {
-        return getFakeData().getPageOfUsers(getLastItem(), getLimit(), getTargetUser());
+        String lastItemAlias;
+        if (getLastItem() != null) {
+            lastItemAlias = getLastItem().getAlias();
+        }
+        else {
+            lastItemAlias = null;
+        }
+        FollowersRequest followersRequest = new FollowersRequest(authToken,
+                getTargetUser().getAlias(), getLimit(), lastItemAlias);
+        try {
+            FollowersResponse followersResponse = new ServerFacade().getFollowers(followersRequest,
+                    "/getfollowers");
+            if (followersResponse.isSuccess()) {
+                return new Pair<>(followersResponse.getFollowers(),
+                        followersResponse.getHasMorePages());
+            }
+        }
+        catch (Exception e) {
+            sendExceptionMessage(e);
+        }
+
+        return null;
+        //return getFakeData().getPageOfUsers(getLastItem(), getLimit(), getTargetUser());
     }
 }
