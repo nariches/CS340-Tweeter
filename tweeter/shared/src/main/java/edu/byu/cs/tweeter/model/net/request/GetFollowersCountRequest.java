@@ -8,8 +8,7 @@ public class GetFollowersCountRequest {
     private String username;
     private AuthToken authToken;
 
-    public GetFollowersCountRequest() {
-    }
+    public GetFollowersCountRequest() {}
 
     public GetFollowersCountRequest(String username, AuthToken authToken) {
         this.username = username;

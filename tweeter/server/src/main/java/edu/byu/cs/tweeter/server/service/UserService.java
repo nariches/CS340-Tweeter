@@ -2,9 +2,12 @@ package edu.byu.cs.tweeter.server.service;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.GetUserRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
 import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
+import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
+import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
@@ -22,6 +25,15 @@ public class UserService {
         User user = getDummyUser();
         AuthToken authToken = getDummyAuthToken();
         return new RegisterResponse(user, authToken);
+    }
+
+    public GetUserResponse getUser(AuthToken authToken, String username) {
+        User user = getFakeData().findUserByAlias(username);
+        return new GetUserResponse(user);
+    }
+
+    public LogoutResponse logout(AuthToken authToken) {
+        return new LogoutResponse();
     }
 
     /**
