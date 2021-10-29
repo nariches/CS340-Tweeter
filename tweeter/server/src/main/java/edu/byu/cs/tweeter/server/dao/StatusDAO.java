@@ -5,7 +5,9 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.net.request.FeedRequest;
+import edu.byu.cs.tweeter.model.net.request.StoryRequest;
 import edu.byu.cs.tweeter.model.net.response.FeedResponse;
+import edu.byu.cs.tweeter.model.net.response.StoryResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
 public class StatusDAO {
@@ -35,6 +37,31 @@ public class StatusDAO {
         return new FeedResponse(responseFeed, hasMorePages);
     }
 
+    public StoryResponse getStory(StoryRequest request) {
+        // TODO: Generates dummy data. Replace with a real implementation.
+        assert request.getLimit() > 0;
+        assert request.getUsername() != null;
+
+        List<Status> story = getDummyStory();
+        List<Status> responseStory = new ArrayList<>(request.getLimit());
+
+        boolean hasMorePages = false;
+
+        if(request.getLimit() > 0) {
+            if (story != null) {
+                int storyIndex = getStoryStartingIndex(request.getLastStatusDatetime(), story);
+
+                for(int limitCounter = 0; storyIndex < story.size() && limitCounter < request.getLimit(); storyIndex++, limitCounter++) {
+                    responseStory.add(story.get(storyIndex));
+                }
+
+                hasMorePages = storyIndex < story.size();
+            }
+        }
+
+        return new StoryResponse(responseStory, hasMorePages);
+    }
+
     private int getFeedStartingIndex(String lastStatusDatetime, List<Status> feed) {
 
         int feedIndex = 0;
@@ -53,6 +80,26 @@ public class StatusDAO {
         }
 
         return feedIndex;
+    }
+
+    private int getStoryStartingIndex(String lastStatusDatetime, List<Status> story) {
+
+        int storyIndex = 0;
+
+        if(lastStatusDatetime != null) {
+            // This is a paged request for something after the first page. Find the first item
+            // we should return
+            for (int i = 0; i < story.size(); i++) {
+                if(lastStatusDatetime.equals(story.get(i).getDate())) {
+                    // We found the index of the last item returned last time. Increment to get
+                    // to the first one we should return
+                    storyIndex = i + 1;
+                    break;
+                }
+            }
+        }
+
+        return storyIndex;
     }
 
     List<Status> getDummyFeed() {
