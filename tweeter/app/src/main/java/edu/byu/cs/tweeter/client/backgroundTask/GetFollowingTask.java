@@ -36,6 +36,8 @@ public class GetFollowingTask extends PagedUserTask {
             FollowingResponse followingResponse = new ServerFacade().getFollowees(followingRequest,
                     "/getfollowing");
             if (followingResponse.isSuccess()) {
+                BackgroundTaskUtils backgroundTaskUtils = new BackgroundTaskUtils();
+                backgroundTaskUtils.loadImage(getTargetUser());
                 return new Pair<>(followingResponse.getFollowees(),
                         followingResponse.getHasMorePages());
             }

@@ -24,6 +24,8 @@ public class LoginTask extends AuthenticationTask {
         try {
             LoginResponse loginResponse = new ServerFacade().login(loginRequest, "/login");
             if (loginResponse.isSuccess()) {
+                BackgroundTaskUtils backgroundTaskUtils = new BackgroundTaskUtils();
+                backgroundTaskUtils.loadImage(loginResponse.getUser());
                 return new Pair<>(loginResponse.getUser(), loginResponse.getAuthToken());
             }
             else {

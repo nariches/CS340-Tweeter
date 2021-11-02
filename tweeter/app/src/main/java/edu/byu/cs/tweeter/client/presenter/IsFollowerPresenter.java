@@ -18,7 +18,6 @@ public class IsFollowerPresenter extends Presenter implements FollowService.IsFo
     }
 
     private IsFollowerView isFollowerView;
-    private User targetUser;
     private User selectedUser;
     private AuthToken authToken;
     private FollowService.FollowObserver observer;

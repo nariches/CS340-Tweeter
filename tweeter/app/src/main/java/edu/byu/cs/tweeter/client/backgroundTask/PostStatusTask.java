@@ -6,6 +6,7 @@ import android.os.Handler;
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
+import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.PostStatusRequest;
 import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 
@@ -27,6 +28,9 @@ public class PostStatusTask extends AuthorizedTask {
 
     @Override
     protected void runTask() {
+        User currUser = status.getUser();
+        User userCopy = new User(currUser.firstName, currUser.lastName, currUser.alias, null);
+        status.setUser(userCopy);
         PostStatusRequest postStatusRequest = new PostStatusRequest(authToken, status);
         try {
             PostStatusResponse postStatusResponse = new ServerFacade().postStatus(postStatusRequest,
@@ -38,8 +42,6 @@ public class PostStatusTask extends AuthorizedTask {
         catch(Exception e) {
             sendExceptionMessage(e);
         }
-
-
 
 
         // We could do this from the presenter, without a task and handler, but we will

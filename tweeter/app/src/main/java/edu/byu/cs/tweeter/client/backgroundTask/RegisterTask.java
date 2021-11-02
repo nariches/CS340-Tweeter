@@ -45,6 +45,8 @@ public class RegisterTask extends AuthenticationTask {
             RegisterResponse registerResponse = new ServerFacade().register(registerRequest,
                     "/register");
             if (registerResponse.isSuccess()) {
+                BackgroundTaskUtils backgroundTaskUtils = new BackgroundTaskUtils();
+                backgroundTaskUtils.loadImage(registerResponse.getRegisteredUser());
                 return new Pair<>(registerResponse.getRegisteredUser(),
                         registerResponse.getAuthToken());
             }

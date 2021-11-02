@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
     private Toast logOutToast;
     private Toast postingToast;
     private User selectedUser;
-    private User targetUser;
+    private User targetUser = Cache.getInstance().getCurrUser();
     private TextView followeeCount;
     private TextView followerCount;
     private Button followButton;
