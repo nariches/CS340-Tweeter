@@ -12,6 +12,7 @@ import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
+import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
@@ -51,6 +52,13 @@ public class FollowDAO {
     public UnfollowResponse unfollow(AuthToken authToken, String username) {
         assert username != null;
         return new UnfollowResponse();
+    }
+
+    public IsFollowerResponse isFollower(AuthToken authToken, String followerUsername,
+                                         String followeeUsername) {
+        assert followerUsername != null;
+        assert followeeUsername != null;
+        return new IsFollowerResponse();
     }
 
     /**

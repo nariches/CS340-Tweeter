@@ -9,6 +9,7 @@ import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowersCountResponse;
 import edu.byu.cs.tweeter.model.net.response.GetFollowingCountResponse;
+import edu.byu.cs.tweeter.model.net.response.IsFollowerResponse;
 import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
 
@@ -48,6 +49,11 @@ public class FollowService {
 
     public UnfollowResponse unfollow(AuthToken authToken, String username) {
         return getFollowingDAO().unfollow(authToken, username);
+    }
+
+    public IsFollowerResponse isFollower(AuthToken authToken, String followerUsername,
+                                         String followeeUsername) {
+        return getFollowingDAO().isFollower(authToken, followerUsername, followeeUsername);
     }
 
     /**

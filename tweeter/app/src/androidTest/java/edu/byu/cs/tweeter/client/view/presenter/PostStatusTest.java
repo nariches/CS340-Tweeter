@@ -63,9 +63,6 @@ public class PostStatusTest {
             }
         };
 
-//        Mockito.doAnswer(postStatusSucceededAnswer).when(mockStatusService).
-//                postStatus(eq(mockAuthToken), eq(mockStatus), any(StatusService.PostStatusObserver.class));
-
         Mockito.doAnswer(postStatusSucceededAnswer).when(mockStatusService).
                 postStatus(Mockito.any(), Mockito.any(), Mockito.any());
 
