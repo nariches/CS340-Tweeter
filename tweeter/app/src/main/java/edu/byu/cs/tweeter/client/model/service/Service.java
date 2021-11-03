@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.client.model.service;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import androidx.annotation.NonNull;
@@ -40,6 +41,11 @@ public abstract class Service<T extends Runnable> {
     protected abstract class ServiceHandler extends Handler {
 
         private ServiceObserver observer;
+
+        public ServiceHandler(Looper looper, ServiceObserver observer) {
+            super(looper);
+            this.observer = observer;
+        }
 
         public ServiceHandler(ServiceObserver observer) {
             this.observer = observer;
