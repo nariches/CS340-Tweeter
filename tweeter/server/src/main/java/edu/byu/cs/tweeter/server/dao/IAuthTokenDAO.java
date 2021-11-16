@@ -4,6 +4,6 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 
 public interface IAuthTokenDAO {
 
-    AuthToken createAuthToken();
+    AuthToken putAuthToken();
 
 }

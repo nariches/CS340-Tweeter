@@ -15,7 +15,7 @@ public class AuthTokenDAO implements IAuthTokenDAO {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder(); //threadsafe
 
     @Override
-    public AuthToken createAuthToken() {
+    public AuthToken putAuthToken() {
         String token = generateNewToken();
         Date date = Calendar.getInstance().getTime();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");

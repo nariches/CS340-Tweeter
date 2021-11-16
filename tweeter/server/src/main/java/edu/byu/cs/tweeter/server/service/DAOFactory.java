@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.server.service;
 
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
+import edu.byu.cs.tweeter.server.dao.IAuthTokenDAO;
 import edu.byu.cs.tweeter.server.dao.IFollowDAO;
 import edu.byu.cs.tweeter.server.dao.IStatusDAO;
 import edu.byu.cs.tweeter.server.dao.IUserDAO;
@@ -18,5 +19,7 @@ public abstract class DAOFactory {
     public abstract IStatusDAO getStatusDAO();
 
     public abstract IUserDAO getUserDAO();
+
+    public abstract IAuthTokenDAO getAuthTokenDAO();
 
 }

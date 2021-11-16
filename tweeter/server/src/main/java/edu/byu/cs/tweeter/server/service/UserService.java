@@ -1,5 +1,22 @@
 package edu.byu.cs.tweeter.server.service;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.logging.Logger;
+
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.GetUserRequest;
@@ -22,62 +39,121 @@ public class UserService {
 
     public LoginResponse login(LoginRequest loginRequest) {
 
-        // TODO: Generates dummy data. Replace with a real implementation.
-//        User user = getDummyUser();
-//        AuthToken authToken = getDummyAuthToken();
-//        return new LoginResponse(user, authToken);
+        try {
+            Item userItem = awsFactory.userDAO.getUser(loginRequest.getUsername());
+            User loggedInUser = new User(userItem.getString("first_name"),
+                    userItem.getString("last_name"),
+                    userItem.getString("username"), userItem.getString("image"));
 
-        return awsFactory.getUserDAO().login(loginRequest);
+            String storedPassword = userItem.getString("password");
+            boolean passwordsMatch = validatePassword(loginRequest.getPassword(), storedPassword, loginRequest.getUsername());
+            if (passwordsMatch) {
+                AuthToken authToken = awsFactory.getAuthTokenDAO().putAuthToken(); //fix
+                return new LoginResponse(loggedInUser, authToken);
+            } else {
+                return new LoginResponse("Incorrect password");
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to login user: " + loginRequest.getUsername());
+            System.err.println(e.getMessage());
+            return new LoginResponse(e.getMessage());
+        }
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) {
-//        User user = getDummyUser();
-//        AuthToken authToken = getDummyAuthToken();
-//        return new RegisterResponse(user, authToken);
+        String securePassword = getHashedPassword(registerRequest.getPassword(), registerRequest.getUsername());
+        try {
 
-        return awsFactory.getUserDAO().register(registerRequest);
+            System.out.println("Made it to register!");
+            //Upload image to S3
+            String url = setS3ImageFile(registerRequest);
+
+            System.out.println("This is the username: " + registerRequest.getUsername());
+            System.out.println("This is the password: " + registerRequest.getPassword());
+            System.out.println("This is the firstname: " + registerRequest.getFirstName());
+            System.out.println("This is the lastname: " + registerRequest.getLastName());
+            System.out.println("This is the URL: " + url);
+
+            PutItemOutcome outcome = awsFactory.userDAO.putUser(registerRequest.getFirstName(),
+                    registerRequest.getLastName(), registerRequest.getUsername(),
+                    securePassword, url);
+
+            System.out.println("Register succeeded:\n" + outcome.getPutItemResult());
+
+            AuthToken authToken = awsFactory.authTokenDAO.putAuthToken();
+            User registeredUser = new User(registerRequest.getFirstName(), registerRequest.getLastName(),
+                    registerRequest.getUsername(), url);
+            System.out.println("This is registeredUser: " + registeredUser);
+            System.out.println("This is authToken: " + authToken);
+            return new RegisterResponse(registeredUser, authToken);
+        }
+        catch (Exception e) {
+            System.err.println("Unable to register user: " + registerRequest.getFirstName() + " "
+                    + registerRequest.getLastName());
+            System.err.println(e.getMessage());
+            return new RegisterResponse(e.getMessage());
+        }
     }
 
     public GetUserResponse getUser(GetUserRequest getUserRequest) {
-//        User user = getFakeData().findUserByAlias(username);
-//        return new GetUserResponse(user);
-
-        return awsFactory.getUserDAO().getUser(getUserRequest);
+        //Table users_table = dynamoDB.getTable("users");
+        assert getUserRequest.getUsername() != null;
+        try {
+            Item userItem = awsFactory.userDAO.getUser(getUserRequest.getUsername());
+            User user = new User(userItem.getString("first_name"), userItem.getString("last_name"),
+                    userItem.getString("username"), userItem.getString("image"));
+            return new GetUserResponse(user);
+        } catch (Exception e) {
+            System.err.println("Unable to get user: " + getUserRequest.getUsername());
+            System.err.println(e.getMessage());
+            return new GetUserResponse(e.getMessage());
+        }
     }
 
     public LogoutResponse logout(LogoutRequest logoutRequest) {
-        //return new LogoutResponse();
-
-        return awsFactory.getUserDAO().logout(logoutRequest);
+        return new LogoutResponse();
     }
 
-    /**
-     * Returns the dummy user to be returned by the login operation.
-     * This is written as a separate method to allow mocking of the dummy user.
-     *
-     * @return a dummy user.
-     */
-//    User getDummyUser() {
-//        return getFakeData().getFirstUser();
-//    }
+    private boolean validatePassword(String givenPassword, String storedPassword, String username) {
+        String givenHashed = getHashedPassword(givenPassword, username);
+        return givenHashed.equals(storedPassword);
+    }
 
-    /**
-     * Returns the dummy auth token to be returned by the login operation.
-     * This is written as a separate method to allow mocking of the dummy auth token.
-     *
-     * @return a dummy auth token.
-     */
-//    AuthToken getDummyAuthToken() {
-//        return getFakeData().getAuthToken();
-//    }
+    private static String getHashedPassword(String password, String username) {
+        String salt = username;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(salt.getBytes());
+            byte[] bytes = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte aByte : bytes) {
+                sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "FAILED TO HASH PASSWORD";
+    }
 
-    /**
-     * Returns the {@link FakeData} object used to generate dummy users and auth tokens.
-     * This is written as a separate method to allow mocking of the {@link FakeData}.
-     *
-     * @return a {@link FakeData} instance.
-     */
-//    FakeData getFakeData() {
-//        return new FakeData();
-//    }
+    private String setS3ImageFile(RegisterRequest registerRequest) throws IOException {
+        Logger.getLogger("function").info("setS3ImageFile");
+        AmazonS3 s3 = AmazonS3ClientBuilder
+                .standard()
+                .withRegion("us-east-2")
+                .build();
+        if (s3 == null) Logger.getLogger("error").warning("s3 null");
+        String bucket = "nathanawsbucket";
+        String fileName = registerRequest.getUsername() + "-image.png";
+        byte[] imageBytes = Base64.getDecoder().decode(registerRequest.getImage());
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
+
+        //create PutObjectRequest
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, fileName, byteArrayInputStream, new ObjectMetadata())
+                .withCannedAcl(CannedAccessControlList.PublicReadWrite);
+        s3.putObject(putObjectRequest);
+        String imageUrl = s3.getUrl(bucket, fileName).toString();
+        Logger.getLogger("imageUrl").info(imageUrl);
+        return imageUrl;
+    }
 }

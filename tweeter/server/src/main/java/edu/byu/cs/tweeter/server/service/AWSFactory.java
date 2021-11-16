@@ -6,6 +6,7 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
 import com.amazonaws.services.dynamodbv2.document.Table;
 
+import edu.byu.cs.tweeter.server.dao.AuthTokenDAO;
 import edu.byu.cs.tweeter.server.dao.FollowDAO;
 import edu.byu.cs.tweeter.server.dao.StatusDAO;
 import edu.byu.cs.tweeter.server.dao.UserDAO;
@@ -15,12 +16,14 @@ public class AWSFactory extends DAOFactory {
     protected FollowDAO followDAO;
     protected StatusDAO statusDAO;
     protected UserDAO userDAO;
+    protected AuthTokenDAO authTokenDAO;
 
 
     public AWSFactory() {
         this.followDAO = new FollowDAO();
         this.statusDAO = new StatusDAO();
         this.userDAO = new UserDAO();
+        this.authTokenDAO = new AuthTokenDAO();
     }
 
     @Override
@@ -36,5 +39,10 @@ public class AWSFactory extends DAOFactory {
     @Override
     public UserDAO getUserDAO() {
         return userDAO;
+    }
+
+    @Override
+    public AuthTokenDAO getAuthTokenDAO() {
+        return authTokenDAO;
     }
 }
