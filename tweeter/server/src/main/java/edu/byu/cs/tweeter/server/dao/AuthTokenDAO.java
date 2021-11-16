@@ -1,5 +1,8 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+
 import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,6 +25,11 @@ public class AuthTokenDAO implements IAuthTokenDAO {
         String strDate = dateFormat.format(date);
         AuthToken authToken = new AuthToken(token, strDate);
         return authToken;
+    }
+
+    @Override
+    public Item getAuthToken(String token) {
+        return null;
     }
 
     private static String generateNewToken() {
