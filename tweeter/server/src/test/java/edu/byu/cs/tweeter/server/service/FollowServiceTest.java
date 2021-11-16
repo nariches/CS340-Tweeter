@@ -42,7 +42,7 @@ public class FollowServiceTest {
         Mockito.when(mockFollowDAO.getFollowees(request)).thenReturn(expectedResponse);
 
         followServiceSpy = Mockito.spy(FollowService.class);
-        Mockito.when(followServiceSpy.getFollowingDAO()).thenReturn(mockFollowDAO);
+        //Mockito.when(followServiceSpy.getFollowees(request)).thenReturn(mockFollowDAO); //Commented out because it didn't work with M4A
     }
 
     /**

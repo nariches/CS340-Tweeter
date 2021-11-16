@@ -13,6 +13,6 @@ public class GetFollowingCountHandler implements RequestHandler<GetFollowingCoun
     @Override
     public GetFollowingCountResponse handleRequest(GetFollowingCountRequest request, Context context) {
         FollowService followService = new FollowService();
-        return followService.getFollowingCount(request.getUsername(), request.getAuthToken());
+        return followService.getFollowingCount(request);
     }
 }

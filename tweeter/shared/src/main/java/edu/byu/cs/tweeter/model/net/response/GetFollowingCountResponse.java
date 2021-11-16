@@ -16,4 +16,8 @@ public class GetFollowingCountResponse extends Response {
     public int getFollowingCount() {
         return followingCount;
     }
+
+    public void setFollowingCount(int followingCount) {
+        this.followingCount = followingCount;
+    }
 }

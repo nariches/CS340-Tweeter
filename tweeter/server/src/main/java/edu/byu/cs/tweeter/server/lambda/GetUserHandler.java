@@ -13,6 +13,6 @@ public class GetUserHandler implements RequestHandler<GetUserRequest, GetUserRes
     @Override
     public GetUserResponse handleRequest(GetUserRequest request, Context context) {
         UserService userService = new UserService();
-        return userService.getUser(request.getAuthToken(), request.getUsername());
+        return userService.getUser(request);
     }
 }

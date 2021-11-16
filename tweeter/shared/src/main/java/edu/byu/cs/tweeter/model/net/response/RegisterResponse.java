@@ -8,6 +8,10 @@ public class RegisterResponse extends Response {
     private User registeredUser;
     private AuthToken authToken;
 
+    public RegisterResponse(){
+        super(true, null);
+    }
+
     public RegisterResponse(String message) {
         super(false, message);
     }
@@ -15,6 +19,14 @@ public class RegisterResponse extends Response {
     public RegisterResponse(User registeredUser, AuthToken authToken) {
         super(true, null);
         this.registeredUser = registeredUser;
+        this.authToken = authToken;
+    }
+
+    public void setRegisteredUser(User registeredUser) {
+        this.registeredUser = registeredUser;
+    }
+
+    public void setAuthToken(AuthToken authToken) {
         this.authToken = authToken;
     }
 

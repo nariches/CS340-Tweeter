@@ -1,12 +1,30 @@
 package edu.byu.cs.tweeter.server.dao;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.QueryResult;
+import com.sun.tools.javac.util.Name;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
+import edu.byu.cs.tweeter.model.net.request.GetFollowersCountRequest;
+import edu.byu.cs.tweeter.model.net.request.GetFollowingCountRequest;
+import edu.byu.cs.tweeter.model.net.request.IsFollowerRequest;
+import edu.byu.cs.tweeter.model.net.request.UnfollowRequest;
 import edu.byu.cs.tweeter.model.net.response.FollowResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowersResponse;
 import edu.byu.cs.tweeter.model.net.response.FollowingResponse;
@@ -19,7 +37,7 @@ import edu.byu.cs.tweeter.server.util.FakeData;
 /**
  * A DAO for accessing 'following' data from the database.
  */
-public class FollowDAO {
+public class FollowDAO implements IFollowDAO {
 
     /**
      * Gets the count of users from the database that the user specified is following. The
@@ -28,36 +46,42 @@ public class FollowDAO {
      * @param //follower the User whose count of how many following is desired.
      * @return said count.
      */
-//    public Integer getFolloweeCount(User follower) {
-//        // TODO: uses the dummy data.  Replace with a real implementation.
-//        assert follower != null;
-//        return getDummyFollowees().size();
-//    }
 
-    public GetFollowersCountResponse getFollowersCount(String username, AuthToken authToken) {
-        assert username != null;
-        return new GetFollowersCountResponse(getDummyFollowers().size());
+    @Override
+    public GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest getFollowersCountRequest) {
+        assert getFollowersCountRequest.getUsername() != null;
+        return new GetFollowersCountResponse("Replace me");
     }
 
-    public GetFollowingCountResponse getFollowingCount(String username, AuthToken authToken) {
-        assert username != null;
+    @Override
+    public GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest getFollowingCountRequest) {
+        assert getFollowingCountRequest.getUsername() != null;
         return new GetFollowingCountResponse(getDummyFollowees().size());
     }
 
-    public FollowResponse follow(AuthToken authToken, String username) {
-        assert username != null;
-        return new FollowResponse();
+    @Override
+    public FollowResponse follow(FollowRequest followRequest) { //put
+        Table follows_table = dynamoDB.getTable("follows");
+        assert followRequest.getUsername() != null;
+
+        //PutItemOutcome outcome = follows_table.putItem(new Item().withPrimaryKey("follower_handle",
+        //        followRequest.))
+
+                return new FollowResponse();
     }
 
-    public UnfollowResponse unfollow(AuthToken authToken, String username) {
-        assert username != null;
+    @Override
+    public UnfollowResponse unfollow(UnfollowRequest unfollowRequest) { //delete
+        Table follows_table = dynamoDB.getTable("follows");
+        assert unfollowRequest.getUsername() != null;
+
         return new UnfollowResponse();
     }
 
-    public IsFollowerResponse isFollower(AuthToken authToken, String followerUsername,
-                                         String followeeUsername) {
-        assert followerUsername != null;
-        assert followeeUsername != null;
+    @Override
+    public IsFollowerResponse isFollower(IsFollowerRequest isFollowerRequest) { //get?
+        assert isFollowerRequest.getFollowerUsername() != null;
+        assert isFollowerRequest.getFolloweeUsername() != null;
         return new IsFollowerResponse();
     }
 
@@ -71,7 +95,9 @@ public class FollowDAO {
      *                other information required to satisfy the request.
      * @return the followees.
      */
-    public FollowingResponse getFollowees(FollowingRequest request) {
+
+    @Override
+    public FollowingResponse getFollowees(FollowingRequest request) { //get
         // TODO: Generates dummy data. Replace with a real implementation.
         assert request.getLimit() > 0;
         assert request.getFollowerAlias() != null;
@@ -96,7 +122,8 @@ public class FollowDAO {
         return new FollowingResponse(responseFollowees, hasMorePages);
     }
 
-    public FollowersResponse getFollowers(FollowersRequest request) {
+    @Override
+    public FollowersResponse getFollowers(FollowersRequest request) { //get
         assert request.getLimit() > 0;
         assert request.getFolloweeAlias() != null;
 
@@ -119,6 +146,58 @@ public class FollowDAO {
 
         return new FollowersResponse(responseFollowers, hasMorePages);
 
+    }
+
+    public FollowingResponse queryPaginated(Table table, String follower_handle) { //GET FOLLOWING
+        HashMap<String, Object> valueMap = new HashMap<String, Object>();
+        valueMap.put(":follower", follower_handle);
+
+        HashMap<String, String> nameMap = new HashMap<String, String>();
+        nameMap.put("#foll", "follower_handle");
+
+        List<User> followeesList = null;
+
+        Map<String, AttributeValue> lastPrimaryKeyVal = null;
+        do {
+            QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("#foll = :follower")
+                    .withScanIndexForward(true).withNameMap(nameMap)
+                    .withValueMap(valueMap).withMaxResultSize(10);
+            if (lastPrimaryKeyVal != null) {
+                querySpec = querySpec.withExclusiveStartKey("follower_handle",
+                        lastPrimaryKeyVal.get("follower_handle").getS(),
+                        "followee_handle", lastPrimaryKeyVal.get("followee_handle").getS());
+            }
+
+            ItemCollection<QueryOutcome> items = null;
+            Iterator<Item> iterator = null;
+            Item item = null;
+
+
+
+
+            try {
+                System.out.println("Followers of " + follower_handle);
+                items = table.query(querySpec);
+
+                iterator = items.iterator();
+                while (iterator.hasNext()) {
+                    item = iterator.next();
+                    System.out.println(item.getString("followee_handle"));
+                    //followeesList.add(item.getString("followee_handle"));
+                }
+
+            } catch (Exception e) {
+                System.err.println("Unable to query followers");
+                System.err.println(e.getMessage());
+            }
+
+            //Get last primary key value
+            QueryOutcome queryOutcomeRef = items.getLastLowLevelResult();
+            QueryResult queryResultRef = queryOutcomeRef.getQueryResult();
+            lastPrimaryKeyVal = queryResultRef.getLastEvaluatedKey();
+
+        } while (lastPrimaryKeyVal != null);
+        return new FollowingResponse(followeesList, false);
     }
 
     /**

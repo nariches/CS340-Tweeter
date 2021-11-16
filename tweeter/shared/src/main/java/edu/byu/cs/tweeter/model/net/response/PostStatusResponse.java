@@ -25,4 +25,12 @@ public class PostStatusResponse extends Response {
     public Status getStatus() {
         return status;
     }
+
+    public void setAuthToken(AuthToken authToken) {
+        this.authToken = authToken;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }

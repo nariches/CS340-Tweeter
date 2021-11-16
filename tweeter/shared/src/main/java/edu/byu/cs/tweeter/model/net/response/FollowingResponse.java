@@ -64,4 +64,8 @@ public class FollowingResponse extends PagedResponse {
     public int hashCode() {
         return Objects.hash(followees);
     }
+
+    public void setFollowees(List<User> followees) {
+        this.followees = followees;
+    }
 }

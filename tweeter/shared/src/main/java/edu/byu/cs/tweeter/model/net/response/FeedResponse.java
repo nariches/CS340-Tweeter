@@ -43,4 +43,8 @@ public class FeedResponse extends PagedResponse {
     public int hashCode() {
         return Objects.hash(feed);
     }
+
+    public void setFeed(List<Status> feed) {
+        this.feed = feed;
+    }
 }

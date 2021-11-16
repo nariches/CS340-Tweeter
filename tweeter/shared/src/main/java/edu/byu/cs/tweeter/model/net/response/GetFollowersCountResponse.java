@@ -18,4 +18,8 @@ public class GetFollowersCountResponse extends Response {
     public int getFollowersCount() {
         return followersCount;
     }
+
+    public void setFollowersCount(int followersCount) {
+        this.followersCount = followersCount;
+    }
 }

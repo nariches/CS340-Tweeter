@@ -4,6 +4,7 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.GetUserRequest;
 import edu.byu.cs.tweeter.model.net.request.LoginRequest;
+import edu.byu.cs.tweeter.model.net.request.LogoutRequest;
 import edu.byu.cs.tweeter.model.net.request.RegisterRequest;
 import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
@@ -13,27 +14,41 @@ import edu.byu.cs.tweeter.server.util.FakeData;
 
 public class UserService {
 
-    public LoginResponse login(LoginRequest request) {
+    private AWSFactory awsFactory;
+
+    public UserService() {
+        this.awsFactory = new AWSFactory();
+    }
+
+    public LoginResponse login(LoginRequest loginRequest) {
 
         // TODO: Generates dummy data. Replace with a real implementation.
-        User user = getDummyUser();
-        AuthToken authToken = getDummyAuthToken();
-        return new LoginResponse(user, authToken);
+//        User user = getDummyUser();
+//        AuthToken authToken = getDummyAuthToken();
+//        return new LoginResponse(user, authToken);
+
+        return awsFactory.getUserDAO().login(loginRequest);
     }
 
-    public RegisterResponse register(RegisterRequest request) {
-        User user = getDummyUser();
-        AuthToken authToken = getDummyAuthToken();
-        return new RegisterResponse(user, authToken);
+    public RegisterResponse register(RegisterRequest registerRequest) {
+//        User user = getDummyUser();
+//        AuthToken authToken = getDummyAuthToken();
+//        return new RegisterResponse(user, authToken);
+
+        return awsFactory.getUserDAO().register(registerRequest);
     }
 
-    public GetUserResponse getUser(AuthToken authToken, String username) {
-        User user = getFakeData().findUserByAlias(username);
-        return new GetUserResponse(user);
+    public GetUserResponse getUser(GetUserRequest getUserRequest) {
+//        User user = getFakeData().findUserByAlias(username);
+//        return new GetUserResponse(user);
+
+        return awsFactory.getUserDAO().getUser(getUserRequest);
     }
 
-    public LogoutResponse logout(AuthToken authToken) {
-        return new LogoutResponse();
+    public LogoutResponse logout(LogoutRequest logoutRequest) {
+        //return new LogoutResponse();
+
+        return awsFactory.getUserDAO().logout(logoutRequest);
     }
 
     /**
@@ -42,9 +57,9 @@ public class UserService {
      *
      * @return a dummy user.
      */
-    User getDummyUser() {
-        return getFakeData().getFirstUser();
-    }
+//    User getDummyUser() {
+//        return getFakeData().getFirstUser();
+//    }
 
     /**
      * Returns the dummy auth token to be returned by the login operation.
@@ -52,9 +67,9 @@ public class UserService {
      *
      * @return a dummy auth token.
      */
-    AuthToken getDummyAuthToken() {
-        return getFakeData().getAuthToken();
-    }
+//    AuthToken getDummyAuthToken() {
+//        return getFakeData().getAuthToken();
+//    }
 
     /**
      * Returns the {@link FakeData} object used to generate dummy users and auth tokens.
@@ -62,7 +77,7 @@ public class UserService {
      *
      * @return a {@link FakeData} instance.
      */
-    FakeData getFakeData() {
-        return new FakeData();
-    }
+//    FakeData getFakeData() {
+//        return new FakeData();
+//    }
 }

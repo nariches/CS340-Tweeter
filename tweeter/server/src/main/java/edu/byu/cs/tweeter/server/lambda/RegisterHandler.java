@@ -12,6 +12,11 @@ public class RegisterHandler implements RequestHandler<RegisterRequest, Register
     @Override
     public RegisterResponse handleRequest(RegisterRequest registerRequest, Context context) {
         UserService userService = new UserService();
-        return userService.register(registerRequest);
+        System.out.println("In regsiterHandler");
+        RegisterResponse registerResponse = userService.register(registerRequest);
+        System.out.println("This is registerResponse.getRegisteredUser: " + registerResponse.getRegisteredUser());
+        System.out.println("This is registerResponse.getAuthToken: " + registerResponse.getAuthToken());
+        return registerResponse;
+        //return userService.register(registerRequest);
     }
 }

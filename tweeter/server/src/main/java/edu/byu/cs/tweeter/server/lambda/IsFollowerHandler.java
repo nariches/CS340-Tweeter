@@ -13,7 +13,6 @@ public class IsFollowerHandler implements RequestHandler<IsFollowerRequest, IsFo
     @Override
     public IsFollowerResponse handleRequest(IsFollowerRequest request, Context context) {
         FollowService followService = new FollowService();
-        return followService.isFollower(request.getAuthToken(), request.getFollowerUsername(),
-                request.getFolloweeUsername());
+        return followService.isFollower(request);
     }
 }

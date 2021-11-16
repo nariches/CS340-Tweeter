@@ -13,6 +13,6 @@ public class PostStatusHandler implements RequestHandler<PostStatusRequest, Post
     @Override
     public PostStatusResponse handleRequest(PostStatusRequest request, Context context) {
         StatusService statusService = new StatusService();
-        return statusService.postStatus(request.getAuthToken(), request.getStatus());
+        return statusService.postStatus(request);
     }
 }

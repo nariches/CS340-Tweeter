@@ -13,8 +13,9 @@ import edu.byu.cs.tweeter.model.net.response.PostStatusResponse;
 import edu.byu.cs.tweeter.model.net.response.StoryResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
 
-public class StatusDAO {
+public class StatusDAO implements IStatusDAO {
 
+    @Override
     public FeedResponse getFeed(FeedRequest request) {
         // TODO: Generates dummy data. Replace with a real implementation.
         assert request.getLimit() > 0;
@@ -40,6 +41,7 @@ public class StatusDAO {
         return new FeedResponse(responseFeed, hasMorePages);
     }
 
+    @Override
     public StoryResponse getStory(StoryRequest request) {
         // TODO: Generates dummy data. Replace with a real implementation.
         assert request.getLimit() > 0;
@@ -105,8 +107,10 @@ public class StatusDAO {
         return storyIndex;
     }
 
-    public PostStatusResponse postStatus(AuthToken authToken, Status status) {
-        return new PostStatusResponse(authToken, status);
+    @Override
+    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
+        return new PostStatusResponse(postStatusRequest.getAuthToken(),
+                postStatusRequest.getStatus());
     }
 
     List<Status> getDummyFeed() {

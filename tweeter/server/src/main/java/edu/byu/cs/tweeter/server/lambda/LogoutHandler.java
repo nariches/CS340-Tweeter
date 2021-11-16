@@ -13,6 +13,6 @@ public class LogoutHandler implements RequestHandler<LogoutRequest, LogoutRespon
     @Override
     public LogoutResponse handleRequest(LogoutRequest request, Context context) {
         UserService userService = new UserService();
-        return userService.logout(request.getAuthToken());
+        return userService.logout(request);
     }
 }

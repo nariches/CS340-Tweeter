@@ -13,6 +13,6 @@ public class UnfollowHandler implements RequestHandler<UnfollowRequest, Unfollow
     @Override
     public UnfollowResponse handleRequest(UnfollowRequest request, Context context) {
         FollowService followService = new FollowService();
-        return followService.unfollow(request.getAuthToken(), request.getUsername());
+        return followService.unfollow(request);
     }
 }
