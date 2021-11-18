@@ -71,7 +71,6 @@ public class FollowsDAO implements IFollowsDAO {
 
         QueryRequest queryRequest = new QueryRequest()
                 .withTableName("follows")
-                .withIndexName("follows_index")
                 .withKeyConditionExpression("#handle = :username")
                 .withExpressionAttributeNames(attNames)
                 .withExpressionAttributeValues(attValues)
@@ -79,7 +78,6 @@ public class FollowsDAO implements IFollowsDAO {
 
         QueryRequest checkRequest = new QueryRequest()
                 .withTableName("follows")
-                .withIndexName("follows_index")
                 .withKeyConditionExpression("#handle = :username")
                 .withExpressionAttributeNames(attNames)
                 .withExpressionAttributeValues(attValues)
@@ -101,10 +99,15 @@ public class FollowsDAO implements IFollowsDAO {
 
         if (items != null) {
             for (Map<String, AttributeValue> item : items) {
-                User user = new User(item.get("follower_first_name").getS(),
-                        item.get("follower_last_name").getS(),
-                        item.get("follower_handle").getS(),
-                        item.get("follower_image").getS()
+                System.out.println(item.toString());
+                System.out.println(item.get("followee_first_name").getS());
+                System.out.println(item.get("followee_last_name").getS());
+                System.out.println(item.get("followee_handle").getS());
+                System.out.println(item.get("followee_image").getS());
+                User user = new User(item.get("followee_first_name").getS(),
+                        item.get("followee_last_name").getS(),
+                        item.get("followee_handle").getS(),
+                        item.get("followee_image").getS()
                 );
                 followees.add(user);
             }

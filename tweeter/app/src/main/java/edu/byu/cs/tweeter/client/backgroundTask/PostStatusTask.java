@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.client.backgroundTask;
 import android.os.Bundle;
 import android.os.Handler;
 
+import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.net.ServerFacade;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
@@ -29,7 +30,8 @@ public class PostStatusTask extends AuthorizedTask {
     @Override
     protected void runTask() {
         User currUser = status.getUser();
-        User userCopy = new User(currUser.firstName, currUser.lastName, currUser.alias, null);
+        User userCopy = new User(currUser.firstName, currUser.lastName, currUser.alias,
+                Cache.getInstance().getCurrUser().getImageUrl());
         status.setUser(userCopy);
         PostStatusRequest postStatusRequest = new PostStatusRequest(authToken, status);
         try {

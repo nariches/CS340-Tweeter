@@ -46,31 +46,38 @@ public class StatusService {
     }
 
     public StoryResponse getStory(StoryRequest storyRequest) {
-        // TODO: Generates dummy data. Replace with a real implementation.
-        assert storyRequest.getLimit() > 0;
-        assert storyRequest.getUsername() != null;
+        StoryResponse storyResponse = awsFactory.getStoryDAO().getStory
+                (storyRequest.getUsername(), storyRequest.getLastStatusDatetime(),
+                        storyRequest.getLimit());
 
-        List<Status> story = getDummyStory();
-        List<Status> responseStory = new ArrayList<>(storyRequest.getLimit());
-
-        boolean hasMorePages = false;
-
-        if(storyRequest.getLimit() > 0) {
-            if (story != null) {
-                int storyIndex = getStoryStartingIndex(storyRequest.getLastStatusDatetime(), story);
-
-                for(int limitCounter = 0; storyIndex < story.size() && limitCounter < storyRequest.getLimit(); storyIndex++, limitCounter++) {
-                    responseStory.add(story.get(storyIndex));
-                }
-
-                hasMorePages = storyIndex < story.size();
-            }
-        }
-
-        return new StoryResponse(responseStory, hasMorePages);
+        return storyResponse;
+//
+//        assert storyRequest.getLimit() > 0;
+//        assert storyRequest.getUsername() != null;
+//
+//        List<Status> story = getDummyStory();
+//        List<Status> responseStory = new ArrayList<>(storyRequest.getLimit());
+//
+//        boolean hasMorePages = false;
+//
+//        if(storyRequest.getLimit() > 0) {
+//            if (story != null) {
+//                int storyIndex = getStoryStartingIndex(storyRequest.getLastStatusDatetime(), story);
+//
+//                for(int limitCounter = 0; storyIndex < story.size() && limitCounter < storyRequest.getLimit(); storyIndex++, limitCounter++) {
+//                    responseStory.add(story.get(storyIndex));
+//                }
+//
+//                hasMorePages = storyIndex < story.size();
+//            }
+//        }
+//
+//        return new StoryResponse(responseStory, hasMorePages);
     }
 
     public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
+        awsFactory.getStoryDAO().putStory(postStatusRequest.getStatus());
+
         return new PostStatusResponse(postStatusRequest.getAuthToken(),
                 postStatusRequest.getStatus());
     }
@@ -96,25 +103,6 @@ public class StatusService {
         return feedIndex;
     }
 
-    private int getStoryStartingIndex(String lastStatusDatetime, List<Status> story) {
-
-        int storyIndex = 0;
-
-        if(lastStatusDatetime != null) {
-            // This is a paged request for something after the first page. Find the first item
-            // we should return
-            for (int i = 0; i < story.size(); i++) {
-                if(lastStatusDatetime.equals(story.get(i).getDate())) {
-                    // We found the index of the last item returned last time. Increment to get
-                    // to the first one we should return
-                    storyIndex = i + 1;
-                    break;
-                }
-            }
-        }
-
-        return storyIndex;
-    }
 //    StatusDAO getStatusDAO() {
 //        return new StatusDAO();
 //    }
