@@ -6,7 +6,11 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+import com.amazonaws.services.dynamodbv2.model.ReturnValue;
 import com.amazonaws.services.dynamodbv2.xspec.S;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -34,159 +38,170 @@ import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
 import edu.byu.cs.tweeter.server.util.FakeData;
+import edu.byu.cs.tweeter.util.Pair;
 
 public class UserDAO implements IUserDAO {
 
     private AmazonDynamoDB client;
     private DynamoDB dynamoDB;
-    //private AuthTokenDAO authTokenDAO;
     private Table users_table;
 
 
     public UserDAO() {
         this.client = AmazonDynamoDBClientBuilder.standard().withRegion("us-east-2").build();
         this.dynamoDB = new DynamoDB(client);
-        //this.authTokenDAO = new AuthTokenDAO();
         this.users_table = dynamoDB.getTable("users");
     }
 
     @Override
-    public Item getUser(String username) {
+    public User getUser(String username) {
         GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", username);
         System.out.println("Attempting to get user from users_table...");
         Item outcome = users_table.getItem(spec);
         System.out.println("getUser succeeded: " + outcome);
 
-        return outcome;
+        User user = new User(outcome.getString("first_name"),
+                outcome.getString("last_name"),
+                outcome.getString("username"),
+                outcome.getString("image"));
+        return user;
     }
 
     @Override
-    public PutItemOutcome putUser(String firstName, String lastName, String username, String password, String image) {
+    public String getUserPassword(String username) {
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", username);
+        System.out.println("Attempting to get user password from users_table...");
+        Item outcome = users_table.getItem(spec);
+        System.out.println("getUser succeeded: " + outcome);
+
+        String userPassword = outcome.getString("password");
+        return userPassword;
+    }
+
+    @Override
+    public User putUser(String firstName, String lastName, String username, String password, String image,
+                        int followerCount, int followingCount) {
         PutItemOutcome outcome = users_table.putItem(new Item()
                 .withPrimaryKey("username", username)
                 .with("password", password)
                 .with("first_name", firstName)
                 .with("last_name", lastName)
-                .with("image", image));
-        return outcome;
+                .with("image", image)
+                .with("follower_count", followerCount)
+                .with("following_count", followingCount));
+        System.out.println("Register succeeded:\n" + outcome.getPutItemResult());
+        return new User(firstName, lastName, username, image);
     }
 
+    @Override
+    public int getFollowerCount(String username) {
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", username);
+        System.out.println("Attempting to get user followerCount from users_table...");
+        Item outcome = users_table.getItem(spec);
+        System.out.println("getFollowerCount succeeded: " + outcome);
 
-//    @Override
-//    public LoginResponse login(LoginRequest loginRequest) {
-//        Table users_table = dynamoDB.getTable("users");
-//        try {
-//            GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", loginRequest.getUsername());
-//            System.out.println("Attempting to login user...");
-//            Item outcome = users_table.getItem(spec);
-//            System.out.println("login succeeded: " + outcome);
-//            String storedPassword = outcome.getString(loginRequest.getPassword());
-//            boolean passwordsMatch = validatePassword(loginRequest.getPassword(), storedPassword, loginRequest.getUsername());
-//            if (passwordsMatch) {
-//                AuthToken authToken = authTokenDAO.createAuthToken();
-//                User loggedInUser = new User(outcome.getString("first_name"),
-//                        outcome.getString("last_name"),
-//                        outcome.getString("username"), outcome.getString("image"));
-//                return new LoginResponse(loggedInUser, authToken);
-//            }
-//            else {
-//                return new LoginResponse("Incorrect password");
-//            }
-//        }
-//        catch (Exception e) {
-//            System.err.println("Unable to login user: " + loginRequest.getUsername());
-//            System.err.println(e.getMessage());
-//            return new LoginResponse(e.getMessage());
-//        }
-//
-//    }
+        int followerCount = outcome.getInt("follower_count");
+        return followerCount;
+    }
 
-//    @Override
-//    public RegisterResponse register(RegisterRequest registerRequest) {
-//        Table users_table = dynamoDB.getTable("users");
-//        String securePassword = getHashedPassword(registerRequest.getPassword(), registerRequest.getUsername());
-//        try {
-//
-//            System.out.println("Made it to register!");
-//            //Upload image to S3
-//            String url = setS3ImageFile(registerRequest);
-//
-//            System.out.println("This is the username: " + registerRequest.getUsername());
-//            System.out.println("This is the password: " + registerRequest.getPassword());
-//            System.out.println("This is the firstname: " + registerRequest.getFirstName());
-//            System.out.println("This is the lastname: " + registerRequest.getLastName());
-//            System.out.println("This is the URL: " + url);
-//
-//            PutItemOutcome outcome = users_table.putItem(new Item()
-//                    .withPrimaryKey("username", registerRequest.getUsername())
-//                    .with("password", securePassword)
-//                    .with("first_name", registerRequest.getFirstName())
-//                    .with("last_name", registerRequest.getLastName())
-//                    .with("image", url));
-//
-//
-//            System.out.println("Register succeeded:\n" + outcome.getPutItemResult());
-//
-//            AuthToken authToken = authTokenDAO.createAuthToken();
-//            User registeredUser = new User(registerRequest.getFirstName(), registerRequest.getLastName(),
-//                    registerRequest.getUsername(), url);
-//            System.out.println("This is registeredUser: " + registeredUser);
-//            System.out.println("This is authToken: " + authToken);
-//            return new RegisterResponse(registeredUser, authToken);
-//        }
-//        catch (Exception e) {
-//            System.err.println("Unable to register user: " + registerRequest.getFirstName() + " "
-//                    + registerRequest.getLastName());
-//            System.err.println(e.getMessage());
-//            return new RegisterResponse(e.getMessage());
-//        }
-//
-//    }
+    @Override
+    public int getFollowingCount(String username) {
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", username);
+        System.out.println("Attempting to get user followingCount from users_table...");
+        Item outcome = users_table.getItem(spec);
+        System.out.println("getFollowingCount succeeded: " + outcome);
 
-//    @Override
-//    public LogoutResponse logout(LogoutRequest logoutRequest) {
-//        return new LogoutResponse();
-//    }
+        int followingCount = outcome.getInt("following_count");
+        return followingCount;
+    }
 
-//    @Override
-//    public GetUserResponse getUser(GetUserRequest getUserRequest) {
-//        Table users_table = dynamoDB.getTable("users");
-//        assert getUserRequest.getUsername() != null;
-//        try {
-//            GetItemSpec spec = new GetItemSpec().withPrimaryKey("username", getUserRequest.getUsername());
-//            System.out.println("Attempting to get user...");
-//            Item outcome = users_table.getItem(spec);
-//            System.out.println("getUser succeeded: " + outcome);
-//
-//            User user = new User(outcome.getString("first_name"), outcome.getString("last_name"),
-//                    outcome.getString("username"), outcome.getString("image"));
-//            return new GetUserResponse(user);
-//        }
-//        catch (Exception e) {
-//            System.err.println("Unable to get user: " + getUserRequest.getUsername());
-//            System.err.println(e.getMessage());
-//            return new GetUserResponse(e.getMessage());
-//        }
-//    }
+    @Override
+    public void incrementFollowerCount(String username) {
+        int numFollowers = getFollowerCount(username);
+        numFollowers += 1;
 
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
+                username)
+                .withUpdateExpression("set follower_count = :count")
+                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withReturnValues(ReturnValue.UPDATED_NEW);
+        try {
+            System.out.println("Incrementing follower_count...");
+            UpdateItemOutcome outcome = users_table.updateItem(updateItemSpec);
+            System.out.println("incrementFollowerCount succeeded:\n" + outcome.getItem().toJSONPretty());
 
+        }
+        catch (Exception e) {
+            System.err.println("Unable to increment follower_count: " + username);
+            System.err.println(e.getMessage());
+        }
+    }
 
+    @Override
+    public void incrementFollowingCount(String username) {
+        int numFollowers = getFollowerCount(username);
+        numFollowers += 1;
 
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
+                username)
+                .withUpdateExpression("set following_count = :count")
+                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withReturnValues(ReturnValue.UPDATED_NEW);
+        try {
+            System.out.println("Incrementing following_count...");
+            UpdateItemOutcome outcome = users_table.updateItem(updateItemSpec);
+            System.out.println("incrementFollowingCount succeeded:\n" + outcome.getItem().toJSONPretty());
 
+        }
+        catch (Exception e) {
+            System.err.println("Unable to increment following_count: " + username);
+            System.err.println(e.getMessage());
+        }
+    }
 
-//    private static String getSalt() {
-//        try {
-//            SecureRandom sr = SecureRandom.getInstance("SHA1PRNG", "SUN");
-//            byte[] salt = new byte[16];
-//            sr.nextBytes(salt);
-//            return Base64.getEncoder().encodeToString(salt);
-//        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-//            e.printStackTrace();
-//        }
-//        return "FAILED TO GET SALT";
-//    }
+    @Override
+    public void decrementFollowerCount(String username) {
+        int numFollowers = getFollowerCount(username);
+        numFollowers -= 1;
 
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
+                username)
+                .withUpdateExpression("set follower_count = :count")
+                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withReturnValues(ReturnValue.UPDATED_NEW);
+        try {
+            System.out.println("Decrementing follower_count...");
+            UpdateItemOutcome outcome = users_table.updateItem(updateItemSpec);
+            System.out.println("decrementFollowerCount succeeded:\n" + outcome.getItem().toJSONPretty());
 
+        }
+        catch (Exception e) {
+            System.err.println("Unable to decrement follower_count: " + username);
+            System.err.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public void decremementFollowingCount(String username) {
+        int numFollowers = getFollowerCount(username);
+        numFollowers -= 1;
+
+        UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
+                username)
+                .withUpdateExpression("set following_count = :count")
+                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withReturnValues(ReturnValue.UPDATED_NEW);
+        try {
+            System.out.println("Decrementing following_count...");
+            UpdateItemOutcome outcome = users_table.updateItem(updateItemSpec);
+            System.out.println("decrementFollowingCount succeeded:\n" + outcome.getItem().toJSONPretty());
+
+        }
+        catch (Exception e) {
+            System.err.println("Unable to decrement following_count: " + username);
+            System.err.println(e.getMessage());
+        }
+    }
 
 
 }

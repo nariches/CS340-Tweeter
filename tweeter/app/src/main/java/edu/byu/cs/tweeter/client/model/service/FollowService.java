@@ -70,14 +70,14 @@ public class FollowService extends Service {
         executeTask(getFollowersTask);
     }
 
-    public void follow(AuthToken authToken, User selectedUser, FollowObserver observer) {
-        FollowTask followTask = new FollowTask(authToken,
+    public void follow(AuthToken authToken, User currUser, User selectedUser, FollowObserver observer) {
+        FollowTask followTask = new FollowTask(authToken, currUser,
                 selectedUser, new FollowHandler(observer));
         executeTask(followTask);
     }
 
-    public void unfollow(AuthToken authToken, User selectedUser, UnfollowObserver observer) {
-        UnfollowTask unfollowTask = new UnfollowTask(authToken,
+    public void unfollow(AuthToken authToken, User currUser, User selectedUser, UnfollowObserver observer) {
+        UnfollowTask unfollowTask = new UnfollowTask(authToken, currUser,
                 selectedUser, new UnfollowHandler(observer));
         executeTask(unfollowTask);
     }

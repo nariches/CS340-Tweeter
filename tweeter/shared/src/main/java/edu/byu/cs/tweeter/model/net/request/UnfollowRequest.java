@@ -5,13 +5,15 @@ import edu.byu.cs.tweeter.model.domain.AuthToken;
 public class UnfollowRequest {
 
     private AuthToken authToken;
-    private String username;
+    private String currUsername;
+    private String unfolloweeUsername;
 
     public UnfollowRequest() {}
 
-    public UnfollowRequest(AuthToken authToken, String username) {
+    public UnfollowRequest(AuthToken authToken, String currUsername, String unfolloweeUsername) {
         this.authToken = authToken;
-        this.username = username;
+        this.currUsername = currUsername;
+        this.unfolloweeUsername = unfolloweeUsername;
     }
 
     public AuthToken getAuthToken() {
@@ -22,11 +24,19 @@ public class UnfollowRequest {
         this.authToken = authToken;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUnfolloweeUsername() {
+        return unfolloweeUsername;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUnfolloweeUsername(String username) {
+        this.unfolloweeUsername = username;
+    }
+
+    public String getCurrUsername() {
+        return currUsername;
+    }
+
+    public void setCurrUsername(String currUsername) {
+        this.currUsername = currUsername;
     }
 }

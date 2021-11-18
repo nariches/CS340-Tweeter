@@ -17,13 +17,20 @@ import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
+import edu.byu.cs.tweeter.util.Pair;
 
 public interface IUserDAO {
 
-    Item getUser(String username);
-    PutItemOutcome putUser(String firstName, String lastName, String username, String password, String image);
-
-
+    User getUser(String username);
+    String getUserPassword(String username);
+    User putUser(String firstName, String lastName, String username, String password, String image,
+                 int followerCount, int followingCount);
+    int getFollowerCount(String username);
+    int getFollowingCount(String username);
+    void incrementFollowerCount(String username);
+    void incrementFollowingCount(String username);
+    void decrementFollowerCount(String username);
+    void decremementFollowingCount(String username);
 
 //    LoginResponse login(LoginRequest loginRequest);
 //    RegisterResponse register(RegisterRequest registerRequest);

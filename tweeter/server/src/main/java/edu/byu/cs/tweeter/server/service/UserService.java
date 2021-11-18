@@ -1,9 +1,5 @@
 package edu.byu.cs.tweeter.server.service;
 
-import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
-import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -15,7 +11,6 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.logging.Logger;
 
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -27,7 +22,6 @@ import edu.byu.cs.tweeter.model.net.response.GetUserResponse;
 import edu.byu.cs.tweeter.model.net.response.LoginResponse;
 import edu.byu.cs.tweeter.model.net.response.LogoutResponse;
 import edu.byu.cs.tweeter.model.net.response.RegisterResponse;
-import edu.byu.cs.tweeter.server.util.FakeData;
 
 public class UserService {
 
@@ -40,15 +34,12 @@ public class UserService {
     public LoginResponse login(LoginRequest loginRequest) {
 
         try {
-            Item userItem = awsFactory.userDAO.getUser(loginRequest.getUsername());
-            User loggedInUser = new User(userItem.getString("first_name"),
-                    userItem.getString("last_name"),
-                    userItem.getString("username"), userItem.getString("image"));
+            User loggedInUser = awsFactory.getUserDAO().getUser(loginRequest.getUsername());
+            String storedPassword = awsFactory.getUserDAO().getUserPassword(loginRequest.getUsername());
 
-            String storedPassword = userItem.getString("password");
             boolean passwordsMatch = validatePassword(loginRequest.getPassword(), storedPassword, loginRequest.getUsername());
             if (passwordsMatch) {
-                AuthToken authToken = awsFactory.getAuthTokenDAO().putAuthToken(); //fix
+                AuthToken authToken = awsFactory.getAuthTokenDAO().putAuthToken();
                 return new LoginResponse(loggedInUser, authToken);
             } else {
                 return new LoginResponse("Incorrect password");
@@ -74,15 +65,12 @@ public class UserService {
             System.out.println("This is the lastname: " + registerRequest.getLastName());
             System.out.println("This is the URL: " + url);
 
-            PutItemOutcome outcome = awsFactory.userDAO.putUser(registerRequest.getFirstName(),
+            User registeredUser = awsFactory.getUserDAO().putUser(registerRequest.getFirstName(),
                     registerRequest.getLastName(), registerRequest.getUsername(),
-                    securePassword, url);
+                    securePassword, url, 0, 0);
 
-            System.out.println("Register succeeded:\n" + outcome.getPutItemResult());
+            AuthToken authToken = awsFactory.getAuthTokenDAO().putAuthToken();
 
-            AuthToken authToken = awsFactory.authTokenDAO.putAuthToken();
-            User registeredUser = new User(registerRequest.getFirstName(), registerRequest.getLastName(),
-                    registerRequest.getUsername(), url);
             System.out.println("This is registeredUser: " + registeredUser);
             System.out.println("This is authToken: " + authToken);
             return new RegisterResponse(registeredUser, authToken);
@@ -96,12 +84,11 @@ public class UserService {
     }
 
     public GetUserResponse getUser(GetUserRequest getUserRequest) {
-        //Table users_table = dynamoDB.getTable("users");
         assert getUserRequest.getUsername() != null;
         try {
-            Item userItem = awsFactory.userDAO.getUser(getUserRequest.getUsername());
-            User user = new User(userItem.getString("first_name"), userItem.getString("last_name"),
-                    userItem.getString("username"), userItem.getString("image"));
+            User user = awsFactory.getUserDAO().getUser(getUserRequest.getUsername());
+//            User user = new User(userItem.getString("first_name"), userItem.getString("last_name"),
+//                    userItem.getString("username"), userItem.getString("image"));
             return new GetUserResponse(user);
         } catch (Exception e) {
             System.err.println("Unable to get user: " + getUserRequest.getUsername());
@@ -111,6 +98,7 @@ public class UserService {
     }
 
     public LogoutResponse logout(LogoutRequest logoutRequest) {
+        //delete authToken?
         return new LogoutResponse();
     }
 
@@ -137,12 +125,10 @@ public class UserService {
     }
 
     private String setS3ImageFile(RegisterRequest registerRequest) throws IOException {
-        Logger.getLogger("function").info("setS3ImageFile");
         AmazonS3 s3 = AmazonS3ClientBuilder
                 .standard()
                 .withRegion("us-east-2")
                 .build();
-        if (s3 == null) Logger.getLogger("error").warning("s3 null");
         String bucket = "nathanawsbucket";
         String fileName = registerRequest.getUsername() + "-image.png";
         byte[] imageBytes = Base64.getDecoder().decode(registerRequest.getImage());
@@ -153,7 +139,7 @@ public class UserService {
                 .withCannedAcl(CannedAccessControlList.PublicReadWrite);
         s3.putObject(putObjectRequest);
         String imageUrl = s3.getUrl(bucket, fileName).toString();
-        Logger.getLogger("imageUrl").info(imageUrl);
+
         return imageUrl;
     }
 }

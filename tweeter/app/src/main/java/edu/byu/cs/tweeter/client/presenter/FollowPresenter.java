@@ -22,6 +22,7 @@ public class FollowPresenter extends Presenter implements FollowService.FollowOb
     private FollowView followView;
     private User targetUser;
     private AuthToken authToken;
+    private User currUser = Cache.getInstance().getCurrUser();
     private User selectedUser;
     private FollowService.FollowObserver observer;
 
@@ -36,11 +37,11 @@ public class FollowPresenter extends Presenter implements FollowService.FollowOb
         followView.enableFollowButton(false);
         if (buttonText.equals("Following")) {
             followView.displayInfoMessage("Removing " + selectedUser.getName() + "...");
-            new FollowService().unfollow(authToken, selectedUser, this);
+            new FollowService().unfollow(authToken, currUser, selectedUser, this);
         }
         else {
             followView.displayInfoMessage("Adding " + selectedUser.getName() + "...");
-            new FollowService().follow(authToken, selectedUser, this);
+            new FollowService().follow(authToken, currUser, selectedUser, this);
         }
         updateFollowerAndFollowingCounts(authToken, selectedUser);
     }

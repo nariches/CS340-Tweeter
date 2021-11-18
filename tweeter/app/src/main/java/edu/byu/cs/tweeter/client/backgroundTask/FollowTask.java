@@ -16,16 +16,18 @@ public class FollowTask extends AuthorizedTask {
     /**
      * The user that is being followed.
      */
+    private final User currUser;
     private final User followee;
 
-    public FollowTask(AuthToken authToken, User followee, Handler messageHandler) {
+    public FollowTask(AuthToken authToken, User currUser, User followee, Handler messageHandler) {
         super(authToken, messageHandler);
+        this.currUser = currUser;
         this.followee = followee;
     }
 
     @Override
     protected void runTask() {
-        FollowRequest followRequest = new FollowRequest(authToken, followee.getAlias());
+        FollowRequest followRequest = new FollowRequest(authToken, currUser.getAlias(), followee.getAlias());
 
         try {
             FollowResponse followResponse = new ServerFacade().follow(followRequest, "/follow");

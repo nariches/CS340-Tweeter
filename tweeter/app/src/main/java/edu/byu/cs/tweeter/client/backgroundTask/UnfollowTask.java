@@ -17,16 +17,18 @@ public class UnfollowTask extends AuthorizedTask {
     /**
      * The user that is being followed.
      */
+    private final User currUser;
     private final User followee;
 
-    public UnfollowTask(AuthToken authToken, User followee, Handler messageHandler) {
+    public UnfollowTask(AuthToken authToken, User currUser, User followee, Handler messageHandler) {
         super(authToken, messageHandler);
+        this.currUser = currUser;
         this.followee = followee;
     }
 
     @Override
     protected void runTask() {
-        UnfollowRequest unfollowRequest = new UnfollowRequest(authToken, followee.getAlias());
+        UnfollowRequest unfollowRequest = new UnfollowRequest(authToken, currUser.getAlias(), followee.getAlias());
 
         try {
             UnfollowResponse unfollowResponse = new ServerFacade().unfollow(unfollowRequest,

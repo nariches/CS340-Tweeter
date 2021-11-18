@@ -47,6 +47,10 @@ public class IsFollowerTask extends AuthorizedTask {
             if (!isFollowerResponse.isSuccess()) {
                 sendFailedMessage(isFollowerResponse.getMessage());
             }
+            else {
+                isFollower = isFollowerResponse.isFollowerBool();
+
+            }
         }
         catch (Exception e) {
             sendExceptionMessage(e);
@@ -59,6 +63,10 @@ public class IsFollowerTask extends AuthorizedTask {
 
     @Override
     protected void loadBundle(Bundle msgBundle) {
+        System.out.println("IS_FOLLOWER_KEY1: " + IS_FOLLOWER_KEY);
+        System.out.println("isFollower1: " + isFollower);
         msgBundle.putBoolean(IS_FOLLOWER_KEY, isFollower);
+        System.out.println("IS_FOLLOWER_KEY2: " + IS_FOLLOWER_KEY);
+        System.out.println("isFollower2: " + isFollower);
     }
 }

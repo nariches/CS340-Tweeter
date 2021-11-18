@@ -1,48 +1,55 @@
 package edu.byu.cs.tweeter.server.service;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
-import com.amazonaws.services.dynamodbv2.document.Index;
-import com.amazonaws.services.dynamodbv2.document.Table;
-
 import edu.byu.cs.tweeter.server.dao.AuthTokenDAO;
-import edu.byu.cs.tweeter.server.dao.FollowDAO;
-import edu.byu.cs.tweeter.server.dao.StatusDAO;
+import edu.byu.cs.tweeter.server.dao.FeedDAO;
+import edu.byu.cs.tweeter.server.dao.FollowsDAO;
+import edu.byu.cs.tweeter.server.dao.IAuthTokenDAO;
+import edu.byu.cs.tweeter.server.dao.IFeedDAO;
+import edu.byu.cs.tweeter.server.dao.IFollowsDAO;
+import edu.byu.cs.tweeter.server.dao.IStoryDAO;
+import edu.byu.cs.tweeter.server.dao.IUserDAO;
+import edu.byu.cs.tweeter.server.dao.StoryDAO;
 import edu.byu.cs.tweeter.server.dao.UserDAO;
 
 public class AWSFactory extends DAOFactory {
 
-    protected FollowDAO followDAO;
-    protected StatusDAO statusDAO;
-    protected UserDAO userDAO;
-    protected AuthTokenDAO authTokenDAO;
+    private FollowsDAO followsDAO;
+    private FeedDAO feedDAO;
+    private UserDAO userDAO;
+    private AuthTokenDAO authTokenDAO;
+    private StoryDAO storyDAO;
 
 
     public AWSFactory() {
-        this.followDAO = new FollowDAO();
-        this.statusDAO = new StatusDAO();
+        this.followsDAO = new FollowsDAO();
+        this.feedDAO = new FeedDAO();
         this.userDAO = new UserDAO();
         this.authTokenDAO = new AuthTokenDAO();
+        this.storyDAO = new StoryDAO();
     }
 
     @Override
-    public FollowDAO getFollowDAO() {
-        return followDAO;
+    public IFollowsDAO getFollowsDAO() {
+        return followsDAO;
     }
 
     @Override
-    public StatusDAO getStatusDAO() {
-        return statusDAO;
+    public IFeedDAO getFeedDAO() {
+        return feedDAO;
     }
 
     @Override
-    public UserDAO getUserDAO() {
+    public IUserDAO getUserDAO() {
         return userDAO;
     }
 
     @Override
-    public AuthTokenDAO getAuthTokenDAO() {
+    public IAuthTokenDAO getAuthTokenDAO() {
         return authTokenDAO;
+    }
+
+    @Override
+    public IStoryDAO getStoryDAO() {
+        return storyDAO;
     }
 }
