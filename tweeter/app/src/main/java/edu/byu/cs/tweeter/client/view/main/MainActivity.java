@@ -63,6 +63,12 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
     private StatusPresenter statusPresenter;
 
     @Override
+    protected void onSaveInstanceState(Bundle oldInstanceState) {
+        super.onSaveInstanceState(oldInstanceState);
+        oldInstanceState.clear();
+    }
+
+    @Override
     public void displayErrorMessage(String message) {
         Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
     }

@@ -30,8 +30,8 @@ import edu.byu.cs.tweeter.model.net.response.UnfollowResponse;
 
 public interface IFollowsDAO {
 
-    List<User> getFollowing(String followerUsername, String followeeUsername);
-    void getFollowers(String username);
+    FollowingResponse getFollowing(String followerUsername, String lastFolloweeUsername, int limit);
+    FollowersResponse getFollowers(String followeeUsername, String lastFollowerUsername, int limit);
     void putFollows(String followerUsername, String followerFirstName, String followerLastName,
                     String followerImage, String followeeUsername, String followeeFirstName,
                     String followeeLastName, String followeeImage);

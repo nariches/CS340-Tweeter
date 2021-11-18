@@ -14,6 +14,7 @@ import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
 import com.sun.tools.javac.util.Name;
 
@@ -59,98 +60,171 @@ public class FollowsDAO implements IFollowsDAO {
     }
 
     @Override
-    public List<User> getFollowing(String followerUsername, String lastFolloweeUsername) {
-        HashMap<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put(":follower", followerUsername);
+    public FollowingResponse getFollowing(String followerUsername, String lastFolloweeUsername, int limit) {
+        List<User> followees = new ArrayList<>();
 
-        HashMap<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#foll", "follower_handle");
+        Map<String, String> attNames = new HashMap<String, String>();
+        attNames.put("#handle", "follower_handle");
 
-        List<User> followeesList = null;
+        Map<String, AttributeValue> attValues = new HashMap<>();
+        attValues.put(":username", new AttributeValue().withS(followerUsername));
 
-//        Map<String, AttributeValue> lastPrimaryKeyVal = null;
+        QueryRequest queryRequest = new QueryRequest()
+                .withTableName("follows")
+                .withIndexName("follows_index")
+                .withKeyConditionExpression("#handle = :username")
+                .withExpressionAttributeNames(attNames)
+                .withExpressionAttributeValues(attValues)
+                .withLimit(limit);
 
-        QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("#foll = :follower")
-                .withScanIndexForward(true).withNameMap(nameMap)
-                .withValueMap(valueMap).withMaxResultSize(10);
+        QueryRequest checkRequest = new QueryRequest()
+                .withTableName("follows")
+                .withIndexName("follows_index")
+                .withKeyConditionExpression("#handle = :username")
+                .withExpressionAttributeNames(attNames)
+                .withExpressionAttributeValues(attValues)
+                .withLimit(limit + 1);
+
         if (lastFolloweeUsername != null) {
-            querySpec = querySpec.withExclusiveStartKey("follower_handle",
-                    followerUsername,
-                    "followee_handle", lastFolloweeUsername);
+            Map<String, AttributeValue> lastKey = new HashMap<>();
+            lastKey.put("follower_handle", new AttributeValue().withS(followerUsername));
+            lastKey.put("followee_handle", new AttributeValue().withS(lastFolloweeUsername));
+
+            queryRequest = queryRequest.withExclusiveStartKey(lastKey);
+            checkRequest = checkRequest.withExclusiveStartKey(lastKey);
         }
 
-        ItemCollection<QueryOutcome> items = null;
-        Iterator<Item> iterator = null;
-        Item item = null;
+        QueryResult res = client.query(queryRequest);
+        List<Map<String, AttributeValue>> items = res.getItems();
+        res = client.query(checkRequest);
+        List<Map<String, AttributeValue>> checkItems = res.getItems();
 
-        try {
-            System.out.println("Followers of " + followerUsername);
-            items = follows_table.query(querySpec);
-
-            iterator = items.iterator();
-            while (iterator.hasNext()) {
-                item = iterator.next();
-                System.out.println(item.getString("followee_handle"));
-                followeesList.add(new User(
-                        item.getString("followee_first_name"),
-                        item.getString("followee_last_name"),
-                        item.getString("followee_handle"),
-                        item.getString("followee_image")));
+        if (items != null) {
+            for (Map<String, AttributeValue> item : items) {
+                User user = new User(item.get("follower_first_name").getS(),
+                        item.get("follower_last_name").getS(),
+                        item.get("follower_handle").getS(),
+                        item.get("follower_image").getS()
+                );
+                followees.add(user);
             }
-
-        } catch (Exception e) {
-            System.err.println("Unable to query followers");
-            System.err.println(e.getMessage());
         }
-        return followeesList;
+
+        System.out.println("Successfully got following");
+        System.out.println(followees);
+        if (checkItems.size() > items.size()) {
+            return new FollowingResponse(followees, true);
+        }
+        else {
+            System.out.println("We have no more followers to get");
+            return new FollowingResponse(followees, false);
+        }
+
+//        HashMap<String, Object> valueMap = new HashMap<String, Object>();
+//        valueMap.put(":follower", followerUsername);
+//
+//        HashMap<String, String> nameMap = new HashMap<String, String>();
+//        nameMap.put("#foll", "follower_handle");
+//
+//        List<User> followeesList = null;
+//
+////        Map<String, AttributeValue> lastPrimaryKeyVal = null;
+//
+//        QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("#foll = :follower")
+//                .withScanIndexForward(true).withNameMap(nameMap)
+//                .withValueMap(valueMap).withMaxResultSize(10);
+//        if (lastFolloweeUsername != null) {
+//            querySpec = querySpec.withExclusiveStartKey("follower_handle",
+//                    followerUsername,
+//                    "followee_handle", lastFolloweeUsername);
+//        }
+//
+//        ItemCollection<QueryOutcome> items = null;
+//        Iterator<Item> iterator = null;
+//        Item item = null;
+//
+//        try {
+//            System.out.println("Followers of " + followerUsername);
+//            items = follows_table.query(querySpec);
+//
+//            iterator = items.iterator();
+//            while (iterator.hasNext()) {
+//                item = iterator.next();
+//                System.out.println(item.getString("followee_handle"));
+//                followeesList.add(new User(
+//                        item.getString("followee_first_name"),
+//                        item.getString("followee_last_name"),
+//                        item.getString("followee_handle"),
+//                        item.getString("followee_image")));
+//            }
+//
+//        } catch (Exception e) {
+//            System.err.println("Unable to query followers");
+//            System.err.println(e.getMessage());
+//        }
+//        return followeesList;
     }
 
     @Override
-    public void getFollowers(String username) {
-        
-        HashMap<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put(":followee", username);
+    public FollowersResponse getFollowers(String followeeUsername, String lastFollowerAlias, int limit) {
+        List<User> followers = new ArrayList<>();
 
-        HashMap<String, String> nameMap = new HashMap<String, String>();
-        nameMap.put("#foll", "followee_handle");
+        Map<String, String> attNames = new HashMap<String, String>();
+        attNames.put("#handle", "followee_handle");
 
-        Map<String, AttributeValue> lastPrimaryKeyVal = null;
-        do {
-            QuerySpec querySpec = new QuerySpec().withKeyConditionExpression("#foll = :followee")
-                    .withScanIndexForward(true).withNameMap(nameMap)
-                    .withValueMap(valueMap).withMaxResultSize(10);
-            if (lastPrimaryKeyVal != null) {
-                querySpec = querySpec.withExclusiveStartKey("follower_handle",
-                        lastPrimaryKeyVal.get("follower_handle").getS(),
-                        "followee_handle", lastPrimaryKeyVal.get("followee_handle").getS());
+        Map<String, AttributeValue> attValues = new HashMap<>();
+        attValues.put(":username", new AttributeValue().withS(followeeUsername));
+
+        QueryRequest queryRequest = new QueryRequest()
+                .withTableName("follows")
+                .withIndexName("follows_index")
+                .withKeyConditionExpression("#handle = :username")
+                .withExpressionAttributeNames(attNames)
+                .withExpressionAttributeValues(attValues)
+                .withLimit(limit);
+
+        QueryRequest checkRequest = new QueryRequest()
+                .withTableName("follows")
+                .withIndexName("follows_index")
+                .withKeyConditionExpression("#handle = :username")
+                .withExpressionAttributeNames(attNames)
+                .withExpressionAttributeValues(attValues)
+                .withLimit(limit + 1);
+
+        if (lastFollowerAlias != null) {
+            Map<String, AttributeValue> lastKey = new HashMap<>();
+            lastKey.put("followee_handle", new AttributeValue().withS(followeeUsername));
+            lastKey.put("follower_handle", new AttributeValue().withS(lastFollowerAlias));
+
+            queryRequest = queryRequest.withExclusiveStartKey(lastKey);
+            checkRequest = checkRequest.withExclusiveStartKey(lastKey);
+        }
+
+        QueryResult res = client.query(queryRequest);
+        List<Map<String, AttributeValue>> items = res.getItems();
+        res = client.query(checkRequest);
+        List<Map<String, AttributeValue>> checkItems = res.getItems();
+
+        if (items != null) {
+            for (Map<String, AttributeValue> item : items) {
+                User user = new User(item.get("follower_first_name").getS(),
+                        item.get("follower_last_name").getS(),
+                        item.get("follower_handle").getS(),
+                        item.get("follower_image").getS()
+                );
+                followers.add(user);
             }
+        }
 
-            ItemCollection<QueryOutcome> items = null;
-            Iterator<Item> iterator = null;
-            Item item = null;
-
-
-            try {
-                System.out.println("Followees of " + username);
-                items = follows_index.query(querySpec);
-
-                iterator = items.iterator();
-                while (iterator.hasNext()) {
-                    item = iterator.next();
-                    System.out.println(item.getString("follower_handle"));
-                }
-
-            } catch (Exception e) {
-                System.err.println("Unable to query followers");
-                System.err.println(e.getMessage());
-            }
-
-            //Get last primary key value
-            QueryOutcome queryOutcomeRef = items.getLastLowLevelResult();
-            QueryResult queryResultRef = queryOutcomeRef.getQueryResult();
-            lastPrimaryKeyVal = queryResultRef.getLastEvaluatedKey();
-
-        } while (lastPrimaryKeyVal != null);
+        System.out.println("Successfully got followers");
+        System.out.println(followers);
+        if (checkItems.size() > items.size()) {
+            return new FollowersResponse(followers, true);
+        }
+        else {
+            System.out.println("We have no more followers to get");
+            return new FollowersResponse(followers, false);
+        }
     }
 
     @Override
