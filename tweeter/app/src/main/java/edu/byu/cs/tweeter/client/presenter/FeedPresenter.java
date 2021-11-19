@@ -23,7 +23,13 @@ public class FeedPresenter extends PagedPresenter<Status> implements StatusServi
 
     @Override
     public void getFeedSucceeded(List<Status> statuses, boolean hasMorePages) {
-        getItemsSucceeded(hasMorePages, statuses.get(statuses.size() - 1));
+        if (statuses.size() == 0) {
+            getItemsSucceeded(hasMorePages, null);
+        }
+        else {
+            getItemsSucceeded(hasMorePages, statuses.get(statuses.size() - 1));
+        }
+
         feedView.addItems(statuses);
     }
 

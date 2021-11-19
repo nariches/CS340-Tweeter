@@ -195,7 +195,6 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
 
                         String clickable = s.subSequence(start, end).toString();
 
-
                         if (clickable.contains("http")) {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickable));
                             startActivity(intent);

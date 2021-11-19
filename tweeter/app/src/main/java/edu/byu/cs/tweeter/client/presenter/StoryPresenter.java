@@ -23,7 +23,13 @@ public class StoryPresenter extends PagedPresenter<Status> implements StatusServ
 
     @Override
     public void getStorySucceeded(List<Status> statuses, boolean hasMorePages) {
-        getItemsSucceeded(hasMorePages, statuses.get(statuses.size() - 1));
+        if (statuses.size() == 0) {
+            getItemsSucceeded(hasMorePages, null);
+        }
+        else {
+            getItemsSucceeded(hasMorePages, statuses.get(statuses.size() - 1));
+        }
+
         storyView.addItems(statuses);
     }
 

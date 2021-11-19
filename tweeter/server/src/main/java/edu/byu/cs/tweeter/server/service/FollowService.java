@@ -38,32 +38,6 @@ public class FollowService {
                         followingRequest.getLimit());
 
         return followingResponse;
-
-        //The getFollowing function in the DAO does not get 10 at a time
-        //The front end will handle returning 10 at a time
-//
-//        assert followingRequest.getFollowerAlias() != null;
-//        assert followingRequest.getLimit() > 0;
-//        assert followingRequest.getFollowerAlias() != null;
-//
-//        List<User> allFollowees = getDummyFollowees();
-//        List<User> responseFollowees = new ArrayList<>(followingRequest.getLimit());
-//
-//        boolean hasMorePages = false;
-//
-//        if(followingRequest.getLimit() > 0) {
-//            if (allFollowees != null) {
-//                int followeesIndex = getFolloweesStartingIndex(followingRequest.getLastFolloweeAlias(), allFollowees);
-//
-//                for(int limitCounter = 0; followeesIndex < allFollowees.size() && limitCounter < followingRequest.getLimit(); followeesIndex++, limitCounter++) {
-//                    responseFollowees.add(allFollowees.get(followeesIndex));
-//                }
-//
-//                hasMorePages = followeesIndex < allFollowees.size();
-//            }
-//        }
-//
-//        return new FollowingResponse(responseFollowees, hasMorePages);
     }
 
     public FollowersResponse getFollowers(FollowersRequest followersRequest) {
@@ -72,27 +46,6 @@ public class FollowService {
                         followersRequest.getLimit());
 
         return followersResponse;
-//        assert followersRequest.getLimit() > 0;
-//        assert followersRequest.getFolloweeAlias() != null;
-//
-//        List<User> allFollowers = getDummyFollowers();
-//        List<User> responseFollowers = new ArrayList<>(followersRequest.getLimit());
-//
-//        boolean hasMorePages = false;
-//
-//        if(followersRequest.getLimit() > 0) {
-//            if (allFollowers != null) {
-//                int followersIndex = getFollowersStartingIndex(followersRequest.getLastFollowerAlias(), allFollowers);
-//
-//                for(int limitCounter = 0; followersIndex < allFollowers.size() && limitCounter < followersRequest.getLimit(); followersIndex++, limitCounter++) {
-//                    responseFollowers.add(allFollowers.get(followersIndex));
-//                }
-//
-//                hasMorePages = followersIndex < allFollowers.size();
-//            }
-//        }
-//
-//
     }
 
     public GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest getFollowersCountRequest) {

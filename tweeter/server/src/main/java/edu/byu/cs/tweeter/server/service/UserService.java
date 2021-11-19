@@ -1,5 +1,7 @@
 package edu.byu.cs.tweeter.server.service;
 
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -86,10 +88,13 @@ public class UserService {
     public GetUserResponse getUser(GetUserRequest getUserRequest) {
         assert getUserRequest.getUsername() != null;
         try {
-            User user = awsFactory.getUserDAO().getUser(getUserRequest.getUsername());
-//            User user = new User(userItem.getString("first_name"), userItem.getString("last_name"),
-//                    userItem.getString("username"), userItem.getString("image"));
-            return new GetUserResponse(user);
+            if(authenticated(getUserRequest.getAuthToken())) {
+                User user = awsFactory.getUserDAO().getUser(getUserRequest.getUsername());
+                return new GetUserResponse(user);
+            }
+            else {
+                return new GetUserResponse("AuthToken invalid or expired");
+            }
         } catch (Exception e) {
             System.err.println("Unable to get user: " + getUserRequest.getUsername());
             System.err.println(e.getMessage());
@@ -98,7 +103,7 @@ public class UserService {
     }
 
     public LogoutResponse logout(LogoutRequest logoutRequest) {
-        //delete authToken?
+        awsFactory.getAuthTokenDAO().deleteAuthToken(logoutRequest.getAuthToken());
         return new LogoutResponse();
     }
 
@@ -141,5 +146,15 @@ public class UserService {
         String imageUrl = s3.getUrl(bucket, fileName).toString();
 
         return imageUrl;
+    }
+
+    public boolean authenticated(AuthToken authToken) {
+        AuthToken storedAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(authToken);
+        if (storedAuthToken == null) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 }

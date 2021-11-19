@@ -8,6 +8,6 @@ import edu.byu.cs.tweeter.model.net.response.StoryResponse;
 
 public interface IStoryDAO {
 
-    StoryResponse getStory(String username, String lastStatus, int limit);
+    StoryResponse getStory(String username, String lastStatusDateTime, int limit);
     void putStory(Status status);
 }
