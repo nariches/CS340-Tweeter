@@ -13,6 +13,11 @@ public class PostStatusHandler implements RequestHandler<PostStatusRequest, Post
     @Override
     public PostStatusResponse handleRequest(PostStatusRequest request, Context context) {
         StatusService statusService = new StatusService();
-        return statusService.postStatus(request);
+        try {
+            return statusService.postStatus(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new PostStatusResponse("Error in PostStatusHandler");
     }
 }

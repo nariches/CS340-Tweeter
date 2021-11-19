@@ -45,13 +45,16 @@ public class AuthTokenDAO implements IAuthTokenDAO {
         String token = generateNewToken();
 
         Date date = Calendar.getInstance().getTime();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-        String strDate = dateFormat.format(date);
+        long currTimeLong = date.getTime();
+        String currTimeStr = String.valueOf(currTimeLong);
+//        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+//        String strDate = dateFormat.format(date);
 
-        AuthToken authToken = new AuthToken(token, strDate);
+        AuthToken authToken = new AuthToken(token, currTimeStr);
         try {
-            PutItemOutcome outcome = auth_table.putItem(new Item().withPrimaryKey
-                    ("token", token, "date_time", strDate));
+            PutItemOutcome outcome = auth_table.putItem(new Item().withPrimaryKey("token", token)
+            .with("date_time", currTimeStr));
+            System.out.println("putToken succeeded:\n" + outcome.getPutItemResult());
         }
         catch (Exception e) {
             throw new Exception("Exception in putAuthToken");
@@ -61,8 +64,7 @@ public class AuthTokenDAO implements IAuthTokenDAO {
 
     @Override
     public AuthToken getAuthToken(AuthToken authToken) {
-        GetItemSpec spec = new GetItemSpec().withPrimaryKey("token", authToken.getToken(),
-                "date_time", authToken.getDatetime());
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("token", authToken.getToken());
         System.out.println("Attempting to get authToken from authtoken table...");
         Item outcome = auth_table.getItem(spec);
         System.out.println("getUser succeeded: " + outcome);
@@ -72,31 +74,48 @@ public class AuthTokenDAO implements IAuthTokenDAO {
 
     @Override
     public AuthToken validateAuthToken(AuthToken authToken) throws Exception {
-        Date date = Calendar.getInstance().getTime();
+        //Date date = Calendar.getInstance().getTime();
 
-        GetItemSpec spec = new GetItemSpec().withPrimaryKey("token", authToken.getToken(),
-                "date_time", authToken.getDatetime());
+        GetItemSpec spec = new GetItemSpec().withPrimaryKey("token", authToken.getToken());
         Item authItem = auth_table.getItem(spec);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 
-        Date storedDate = dateFormat.parse(authItem.getString("date_time"));
-        long timeDiff = date.getTime() - storedDate.getTime();
-        long minDiff = (timeDiff
-                / (1000 * 60))
-                % 60;
+        System.out.println("authItem: " + authItem.toString());
+        System.out.println("authItem.getString(date_time): " + authItem.getString("date_time"));
+        //System.out.println("authItem.getString");
+        //Date storedDate = dateFormat.parse(authItem.getString("date_time"));
+        String storedDateStr = authItem.getString("date_time");
+        System.out.println("storedDate: " + storedDateStr);
+        //System.out.println("date.getTime():" + date.getTime());
+        long storedDateLong = Long.parseLong(storedDateStr);
+
+        //Get current time
+        Date date = Calendar.getInstance().getTime();
+        long currTimeLong = date.getTime();
+
+        System.out.println("currTimeLong" + currTimeLong);
+
+        long timeDiff = currTimeLong - storedDateLong;
+        System.out.println("timeDiff:" + timeDiff);
+        long minDiff = (timeDiff / 1000) / 60;
+        System.out.println("minDiff:" + minDiff);
         if (minDiff >= 10) {
             System.out.println("Authtoken is expired");
-            auth_table.deleteItem("token", authToken.getToken(), "date_time", authToken.getDatetime());
+            DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
+                    .withPrimaryKey(new PrimaryKey("token", authToken.getToken()));
+            auth_table.deleteItem(deleteItemSpec);
             throw new Exception();
         }
         else {
             //System.out.println("Updating authtoken: " + authToken.getToken());
-            String dateString = dateFormat.format(date);
+            //String dateString = dateFormat.format(date);
             // Update time and return true
-            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("token",
-                    authToken.getToken(), "date_time", authToken.getDatetime())
+
+            String currTimeStr = String.valueOf(currTimeLong);
+
+            UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("token", authToken.getToken())
                     .withUpdateExpression("set date_time = :date_time")
-                    .withValueMap(new ValueMap().withString(":date_time", dateString))
+                    .withValueMap(new ValueMap().withString(":date_time", currTimeStr))
                     .withReturnValues(ReturnValue.UPDATED_NEW);
             try {
                 System.out.println("Updating authtoken...");
@@ -111,15 +130,14 @@ public class AuthTokenDAO implements IAuthTokenDAO {
                 System.err.println("Unable to update Authtoken: " + authToken.getToken());
                 System.err.println(e.getMessage());
             }
-            return new AuthToken(authToken.getToken(), dateString);
+            return new AuthToken(authToken.getToken(), currTimeStr);
         }
     }
 
     @Override
     public void deleteAuthToken(AuthToken authToken) {
         DeleteItemSpec deleteItemSpec = new DeleteItemSpec()
-                .withPrimaryKey(new PrimaryKey("token", authToken.getToken(),
-                        "date_time", authToken.getDatetime()));
+                .withPrimaryKey(new PrimaryKey("token", authToken.getToken()));
 
         try {
             System.out.println("Attempting authToken delete...");

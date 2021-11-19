@@ -13,6 +13,11 @@ public class UnfollowHandler implements RequestHandler<UnfollowRequest, Unfollow
     @Override
     public UnfollowResponse handleRequest(UnfollowRequest request, Context context) {
         FollowService followService = new FollowService();
-        return followService.unfollow(request);
+        try {
+            return followService.unfollow(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new UnfollowResponse("Error in UnfollowHandler");
     }
 }

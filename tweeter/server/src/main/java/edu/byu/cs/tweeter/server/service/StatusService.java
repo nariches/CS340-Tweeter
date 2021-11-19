@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.server.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 import edu.byu.cs.tweeter.model.net.request.FeedRequest;
@@ -22,96 +23,65 @@ public class StatusService {
         this.awsFactory = new AWSFactory();
     }
 
-    public FeedResponse getFeed(FeedRequest feedRequest) {
-        FeedResponse feedResponse = awsFactory.getFeedDAO().getFeed
-                (feedRequest.getUsername(), feedRequest.getLastStatusDatetime(),
-                        feedRequest.getLimit());
-        return feedResponse;
-    }
-
-    public StoryResponse getStory(StoryRequest storyRequest) {
-        StoryResponse storyResponse = awsFactory.getStoryDAO().getStory
-                (storyRequest.getUsername(), storyRequest.getLastStatusDatetime(),
-                        storyRequest.getLimit());
-
-        return storyResponse;
-//
-//        assert storyRequest.getLimit() > 0;
-//        assert storyRequest.getUsername() != null;
-//
-//        List<Status> story = getDummyStory();
-//        List<Status> responseStory = new ArrayList<>(storyRequest.getLimit());
-//
-//        boolean hasMorePages = false;
-//
-//        if(storyRequest.getLimit() > 0) {
-//            if (story != null) {
-//                int storyIndex = getStoryStartingIndex(storyRequest.getLastStatusDatetime(), story);
-//
-//                for(int limitCounter = 0; storyIndex < story.size() && limitCounter < storyRequest.getLimit(); storyIndex++, limitCounter++) {
-//                    responseStory.add(story.get(storyIndex));
-//                }
-//
-//                hasMorePages = storyIndex < story.size();
-//            }
-//        }
-//
-//        return new StoryResponse(responseStory, hasMorePages);
-    }
-
-    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) {
-        List<User> followerList = new ArrayList<>();
-        awsFactory.getStoryDAO().putStory(postStatusRequest.getStatus());
-
-        FollowersResponse followersResponse = awsFactory.getFollowsDAO().getFollowers
-                (postStatusRequest.getStatus().getUser().getAlias(), null, 1000000);
-        for(User follower: followersResponse.getFollowers()) {
-            followerList.add(follower);
+    public FeedResponse getFeed(FeedRequest feedRequest) throws Exception {
+        AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(feedRequest.getAuthToken());
+        if (authenticated(currAuthToken)) {
+            FeedResponse feedResponse = awsFactory.getFeedDAO().getFeed
+                    (feedRequest.getUsername(), feedRequest.getLastStatusDatetime(),
+                            feedRequest.getLimit());
+            return feedResponse;
         }
-
-        System.out.println("Number of followers!!: " + followerList.size());
-
-        for(User receiver: followerList) {
-            awsFactory.getFeedDAO().putFeed(postStatusRequest.getStatus(), receiver.getAlias());
+        else {
+            return new FeedResponse("AuthToken invalid or expired");
         }
-        return new PostStatusResponse(postStatusRequest.getAuthToken(),
-                postStatusRequest.getStatus());
     }
 
+    public StoryResponse getStory(StoryRequest storyRequest) throws Exception {
+        AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(storyRequest.getAuthToken());
+        if (authenticated(currAuthToken)) {
+            StoryResponse storyResponse = awsFactory.getStoryDAO().getStory
+                    (storyRequest.getUsername(), storyRequest.getLastStatusDatetime(),
+                            storyRequest.getLimit());
 
-    private int getFeedStartingIndex(String lastStatusDatetime, List<Status> feed) {
+            return storyResponse;
+        }
+        else {
+            return new StoryResponse("AuthToken invalid or expired");
+        }
+    }
 
-        int feedIndex = 0;
+    public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) throws Exception {
+        AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(postStatusRequest.getAuthToken());
+        if (authenticated(currAuthToken)) {
+            List<User> followerList = new ArrayList<>();
+            awsFactory.getStoryDAO().putStory(postStatusRequest.getStatus());
 
-        if(lastStatusDatetime != null) {
-            // This is a paged request for something after the first page. Find the first item
-            // we should return
-            for (int i = 0; i < feed.size(); i++) {
-                if(lastStatusDatetime.equals(feed.get(i).getDate())) {
-                    // We found the index of the last item returned last time. Increment to get
-                    // to the first one we should return
-                    feedIndex = i + 1;
-                    break;
-                }
+            FollowersResponse followersResponse = awsFactory.getFollowsDAO().getFollowers
+                    (postStatusRequest.getStatus().getUser().getAlias(), null, 1000000);
+            for (User follower : followersResponse.getFollowers()) {
+                followerList.add(follower);
             }
+
+            System.out.println("Number of followers!!: " + followerList.size());
+
+            for (User receiver : followerList) {
+                awsFactory.getFeedDAO().putFeed(postStatusRequest.getStatus(), receiver.getAlias());
+            }
+            return new PostStatusResponse(postStatusRequest.getAuthToken(),
+                    postStatusRequest.getStatus());
         }
-
-        return feedIndex;
+        else {
+            return new PostStatusResponse("AuthToken invalid or expired");
+        }
     }
 
-//    StatusDAO getStatusDAO() {
-//        return new StatusDAO();
-//    }
-List<Status> getDummyFeed() {
-    return getFakeData().getFakeStatuses();
-}
-
-    List<Status> getDummyStory() {
-        return getFakeData().getFakeStatuses();
-    }
-
-
-    FakeData getFakeData() {
-        return new FakeData();
+    public boolean authenticated(AuthToken authToken) throws Exception {
+        AuthToken storedAuthToken = awsFactory.getAuthTokenDAO().validateAuthToken(authToken);
+        if (storedAuthToken == null) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 }

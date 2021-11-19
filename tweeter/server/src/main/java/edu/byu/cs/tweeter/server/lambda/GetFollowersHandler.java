@@ -12,6 +12,11 @@ public class GetFollowersHandler implements RequestHandler<FollowersRequest, Fol
     @Override
     public FollowersResponse handleRequest(FollowersRequest request, Context context) {
         FollowService service = new FollowService();
-        return service.getFollowers(request);
+        try {
+            return service.getFollowers(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new FollowersResponse("Error in GetFollowersHandler");
     }
 }

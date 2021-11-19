@@ -13,6 +13,11 @@ public class GetStoryHandler implements RequestHandler<StoryRequest, StoryRespon
     @Override
     public StoryResponse handleRequest(StoryRequest request, Context context) {
         StatusService service = new StatusService();
-        return service.getStory(request);
+        try {
+            return service.getStory(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new StoryResponse("Error in GetStoryHandler");
     }
 }

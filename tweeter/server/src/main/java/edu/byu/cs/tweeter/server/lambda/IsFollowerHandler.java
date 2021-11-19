@@ -13,8 +13,14 @@ public class IsFollowerHandler implements RequestHandler<IsFollowerRequest, IsFo
     @Override
     public IsFollowerResponse handleRequest(IsFollowerRequest request, Context context) {
         FollowService followService = new FollowService();
-        IsFollowerResponse isFollowerResponse = followService.isFollower(request);
-        System.out.println("isFollowerResponse in handler: " + isFollowerResponse.isFollowerBool());
-        return followService.isFollower(request);
+        IsFollowerResponse isFollowerResponse = null;
+        try {
+            isFollowerResponse = followService.isFollower(request);
+            System.out.println("isFollowerResponse in handler: " + isFollowerResponse.isFollowerBool());
+            return followService.isFollower(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new IsFollowerResponse("Error in IsFollowerHandler");
     }
 }

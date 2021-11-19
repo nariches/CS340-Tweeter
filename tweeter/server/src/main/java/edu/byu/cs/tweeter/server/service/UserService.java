@@ -85,25 +85,29 @@ public class UserService {
         }
     }
 
-    public GetUserResponse getUser(GetUserRequest getUserRequest) {
-        assert getUserRequest.getUsername() != null;
-        try {
-            if(authenticated(getUserRequest.getAuthToken())) {
+    public GetUserResponse getUser(GetUserRequest getUserRequest) throws Exception {
+        AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(getUserRequest.getAuthToken());
+        if (authenticated(currAuthToken)) {
+            assert getUserRequest.getUsername() != null;
+            try {
+                System.out.println("Authtoken is valid");
                 User user = awsFactory.getUserDAO().getUser(getUserRequest.getUsername());
                 return new GetUserResponse(user);
             }
-            else {
-                return new GetUserResponse("AuthToken invalid or expired");
-            }
-        } catch (Exception e) {
+            catch(Exception e){
             System.err.println("Unable to get user: " + getUserRequest.getUsername());
             System.err.println(e.getMessage());
             return new GetUserResponse(e.getMessage());
         }
     }
+    else {
+        return new GetUserResponse("AuthToken invalid or expired");
+    }
+    }
 
     public LogoutResponse logout(LogoutRequest logoutRequest) {
-        awsFactory.getAuthTokenDAO().deleteAuthToken(logoutRequest.getAuthToken());
+        AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(logoutRequest.getAuthToken());
+        awsFactory.getAuthTokenDAO().deleteAuthToken(currAuthToken);
         return new LogoutResponse();
     }
 
@@ -148,8 +152,8 @@ public class UserService {
         return imageUrl;
     }
 
-    public boolean authenticated(AuthToken authToken) {
-        AuthToken storedAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(authToken);
+    public boolean authenticated(AuthToken authToken) throws Exception {
+        AuthToken storedAuthToken = awsFactory.getAuthTokenDAO().validateAuthToken(authToken);
         if (storedAuthToken == null) {
             return false;
         }

@@ -139,13 +139,13 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public void incrementFollowingCount(String username) {
-        int numFollowers = getFollowerCount(username);
-        numFollowers += 1;
+        int numFollowing = getFollowingCount(username);
+        numFollowing += 1;
 
         UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
                 username)
                 .withUpdateExpression("set following_count = :count")
-                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withValueMap(new ValueMap().withNumber(":count", numFollowing))
                 .withReturnValues(ReturnValue.UPDATED_NEW);
         try {
             System.out.println("Incrementing following_count...");
@@ -183,13 +183,13 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public void decremementFollowingCount(String username) {
-        int numFollowers = getFollowerCount(username);
-        numFollowers -= 1;
+        int numFollowing = getFollowingCount(username);
+        numFollowing -= 1;
 
         UpdateItemSpec updateItemSpec = new UpdateItemSpec().withPrimaryKey("username",
                 username)
                 .withUpdateExpression("set following_count = :count")
-                .withValueMap(new ValueMap().withNumber(":count", numFollowers))
+                .withValueMap(new ValueMap().withNumber(":count", numFollowing))
                 .withReturnValues(ReturnValue.UPDATED_NEW);
         try {
             System.out.println("Decrementing following_count...");
