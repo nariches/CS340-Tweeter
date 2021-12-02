@@ -13,6 +13,7 @@ import com.amazonaws.services.dynamodbv2.document.Table;
 import java.util.List;
 
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.domain.UserDTO;
 import edu.byu.cs.tweeter.model.net.request.FollowRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowersRequest;
 import edu.byu.cs.tweeter.model.net.request.FollowingRequest;
@@ -37,6 +38,7 @@ public interface IFollowsDAO {
                     String followeeLastName, String followeeImage);
     void deleteFollows(String followerUsername, String followeeUsername);
     boolean getFollows(String followerUsername, String followeeUsername);
+    void addFollowersBatch(List<String> followers, String followTarget);
 
 
 
