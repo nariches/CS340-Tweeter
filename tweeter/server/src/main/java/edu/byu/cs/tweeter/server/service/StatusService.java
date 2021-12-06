@@ -1,5 +1,11 @@
 package edu.byu.cs.tweeter.server.service;
 
+import com.amazonaws.services.dynamodbv2.xspec.S;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,20 +59,41 @@ public class StatusService {
     public PostStatusResponse postStatus(PostStatusRequest postStatusRequest) throws Exception {
         AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(postStatusRequest.getAuthToken());
         if (authenticated(currAuthToken)) {
-            List<User> followerList = new ArrayList<>();
+            //PostStory
             awsFactory.getStoryDAO().putStory(postStatusRequest.getStatus());
 
-            FollowersResponse followersResponse = awsFactory.getFollowsDAO().getFollowers
-                    (postStatusRequest.getStatus().getUser().getAlias(), null, 1000000);
-            for (User follower : followersResponse.getFollowers()) {
-                followerList.add(follower);
-            }
+            //PostFeed
 
-            System.out.println("Number of followers!!: " + followerList.size());
+            //Add status to PostStatusQueue
+            String statusJson = JsonSerializer.serialize(postStatusRequest.getStatus());
+            String messageBody = statusJson;
+            String queueUrl = "https://sqs.us-east-2.amazonaws.com/982609089467/PostStatusQueue";
 
-            for (User receiver : followerList) {
-                awsFactory.getFeedDAO().putFeed(postStatusRequest.getStatus(), receiver.getAlias());
-            }
+            SendMessageRequest sendMessageRequest = new SendMessageRequest()
+                    .withQueueUrl(queueUrl)
+                    .withMessageBody(messageBody)
+                    .withDelaySeconds(5);
+
+            AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+            SendMessageResult send_msg_result = sqs.sendMessage(sendMessageRequest);
+
+            String msgId = send_msg_result.getMessageId();
+            System.out.println("Message ID: " + msgId);
+
+
+//            List<User> followerList = new ArrayList<>();
+//
+//            FollowersResponse followersResponse = awsFactory.getFollowsDAO().getFollowers
+//                    (postStatusRequest.getStatus().getUser().getAlias(), null, 1000000);
+//            for (User follower : followersResponse.getFollowers()) {
+//                followerList.add(follower);
+//            }
+//
+//            System.out.println("Number of followers!!: " + followerList.size());
+//
+//            for (User receiver : followerList) {
+//                awsFactory.getFeedDAO().putFeed(postStatusRequest.getStatus(), receiver.getAlias());
+//            }
             return new PostStatusResponse(postStatusRequest.getAuthToken(),
                     postStatusRequest.getStatus());
         }

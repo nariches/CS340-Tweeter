@@ -6,6 +6,16 @@ public class UserDTO {
     private String name;
     public UserDTO() {};
 
+    public UserDTO(String alias) {
+        this.alias = alias;
+    }
+
+    public UserDTO(String alias, String name) {
+        this.alias = alias;
+        this.name = name;
+    }
+
+
     public String getAlias() {
         return alias;
     }

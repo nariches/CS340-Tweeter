@@ -235,6 +235,36 @@ public class FollowsDAO implements IFollowsDAO {
     }
 
     @Override
+    public List<UserDTO> getFolloweesDTO(String authorAlias) {
+        List<UserDTO> followees = new ArrayList<>();
+
+        Map<String, String> attNames = new HashMap<String, String>();
+        attNames.put("#handle", "followee_handle");
+
+        Map<String, AttributeValue> attValues = new HashMap<>();
+        attValues.put(":username", new AttributeValue().withS(authorAlias));
+
+        QueryRequest queryRequest = new QueryRequest()
+                .withTableName("follows")
+                .withIndexName("follows_index")
+                .withKeyConditionExpression("#handle = :username")
+                .withExpressionAttributeNames(attNames)
+                .withExpressionAttributeValues(attValues);
+
+        QueryResult queryResult = client.query(queryRequest);
+        List<Map<String, AttributeValue>> items = queryResult.getItems();
+
+        if (items != null) {
+            for (Map<String, AttributeValue> item : items){
+                UserDTO user = new UserDTO();
+                user.setAlias(item.get("follower_handle").getS());
+                followees.add(user);
+            }
+        }
+        return followees;
+    }
+
+    @Override
     public void putFollows(String followerUsername, String followerFirstName, String followerLastName,
                            String followerImage, String followeeUsername, String followeeFirstName,
                            String followeeLastName, String followeeImage) {

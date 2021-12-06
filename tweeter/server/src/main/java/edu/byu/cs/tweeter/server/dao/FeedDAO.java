@@ -2,13 +2,16 @@ package edu.byu.cs.tweeter.server.dao;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +21,7 @@ import java.util.Map;
 
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
+import edu.byu.cs.tweeter.model.domain.UserDTO;
 import edu.byu.cs.tweeter.model.net.response.FeedResponse;
 import edu.byu.cs.tweeter.model.net.response.StoryResponse;
 
@@ -117,5 +121,47 @@ public class FeedDAO implements IFeedDAO {
                 .with("sender_image", status.getUser().getImageUrl())
                 .with("urls", urlsSet));
         System.out.println("putFeed succeeded:\n" + outcome.getPutItemResult());
+    }
+
+    @Override
+    public void addFeedBatch(Status status, List<UserDTO> followers) {
+        TableWriteItems items = new TableWriteItems("feed");
+
+        for (UserDTO user: followers) {
+            HashSet<String> mentionsSet = new HashSet<>(status.getMentions());
+            HashSet<String> urlsSet = new HashSet<>(status.getUrls());
+            mentionsSet.add("");
+            urlsSet.add("");
+            Item item = new Item().withPrimaryKey("receiver_username", user.getAlias(),
+                    "date_time", status.getDate())
+                    .with("sender_username", status.getUser().getAlias())
+                    .with("mentions", mentionsSet)
+                    .with("post", status.getPost())
+                    .with("sender_first_name", status.getUser().getFirstName())
+                    .with("sender_last_name", status.getUser().getLastName())
+                    .with("urls", urlsSet);
+            items.addItemToPut(item);
+            // 25 is the maximum number of items allowed in a single batch write.
+            // Attempting to write more than 25 items will result in an exception being thrown
+            if (items.getItemsToPut() != null && items.getItemsToPut().size() == 25) {
+                loopBatchWrite(items);
+                items = new TableWriteItems("feed");
+            }
+
+        }
+    }
+
+    private void loopBatchWrite(TableWriteItems items) {
+        // The 'dynamoDB' object is of type DynamoDB and is declared statically in this example
+        BatchWriteItemOutcome outcome = dynamoDB.batchWriteItem(items);
+        //System.out.println("Wrote Feed Batch");
+
+        // Check the outcome for items that didn't make it onto the table
+        // If any were not added to the table, try again to write the batch
+        while (outcome.getUnprocessedItems().size() > 0) {
+            Map<String, List<WriteRequest>> unprocessedItems = outcome.getUnprocessedItems();
+            outcome = dynamoDB.batchWriteItemUnprocessed(unprocessedItems);
+            //System.out.println("Wrote more Feeds");
+        }
     }
 }

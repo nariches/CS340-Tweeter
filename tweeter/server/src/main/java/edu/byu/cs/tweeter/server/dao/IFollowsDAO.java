@@ -33,20 +33,11 @@ public interface IFollowsDAO {
 
     FollowingResponse getFollowing(String followerUsername, String lastFolloweeUsername, int limit);
     FollowersResponse getFollowers(String followeeUsername, String lastFollowerUsername, int limit);
+    List<UserDTO> getFolloweesDTO(String authorAlias);
     void putFollows(String followerUsername, String followerFirstName, String followerLastName,
                     String followerImage, String followeeUsername, String followeeFirstName,
                     String followeeLastName, String followeeImage);
     void deleteFollows(String followerUsername, String followeeUsername);
     boolean getFollows(String followerUsername, String followeeUsername);
     void addFollowersBatch(List<String> followers, String followTarget);
-
-
-
-//    FollowResponse follow(FollowRequest followRequest);
-//    GetFollowersCountResponse getFollowersCount(GetFollowersCountRequest getFollowersCountRequest);
-//    FollowersResponse getFollowers(FollowersRequest followersRequest);
-//    GetFollowingCountResponse getFollowingCount(GetFollowingCountRequest getFollowingCountRequest);
-//    FollowingResponse getFollowees(FollowingRequest followingRequest);
-//    IsFollowerResponse isFollower(IsFollowerRequest isFollowerRequest);
-//    UnfollowResponse unfollow(UnfollowRequest unfollowRequest);
 }
