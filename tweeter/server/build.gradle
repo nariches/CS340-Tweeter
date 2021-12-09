@@ -24,6 +24,9 @@ dependencies {
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-core', version: '1.12.105'
     // https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-dynamodb
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.12.105'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+}
 
-
+test {
+    useJUnitPlatform()
 }

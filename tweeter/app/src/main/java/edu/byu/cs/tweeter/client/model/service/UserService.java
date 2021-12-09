@@ -3,6 +3,7 @@ package edu.byu.cs.tweeter.client.model.service;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.widget.ImageView;
@@ -44,7 +45,7 @@ public class UserService extends Service {
 
     public void login(String alias, String password, AuthenticationObserver observer) {
         LoginTask loginTask = new LoginTask(alias,
-                password, new LoginHandler(observer));
+                password, new LoginHandler(Looper.getMainLooper(), observer));
         executeTask(loginTask);
     }
 
@@ -98,6 +99,11 @@ public class UserService extends Service {
         private AuthenticationObserver observer;
         private User loggedInUser;
         private AuthToken authToken;
+
+        private LoginHandler(Looper looper, AuthenticationObserver observer) {
+            super(looper, observer);
+            this.observer = observer;
+        }
 
         private LoginHandler(AuthenticationObserver observer) {
             super(observer);

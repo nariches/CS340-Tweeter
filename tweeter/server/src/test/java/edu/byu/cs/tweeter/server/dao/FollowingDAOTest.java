@@ -36,7 +36,7 @@ class FollowingDAOTest {
     @Test
     void testGetFollowees_noFolloweesForUser() {
         List<User> followees = Collections.emptyList();
-        Mockito.when(followsDAOSpy.getDummyFollowees()).thenReturn(followees);
+        //Mockito.when(followsDAOSpy.getDummyFollowees()).thenReturn(followees);
 
         FollowingRequest request = new FollowingRequest(testUserAuthToken, user1.getAlias(), 10, null);
         //FollowingResponse response = followsDAOSpy.getFollowees(request);

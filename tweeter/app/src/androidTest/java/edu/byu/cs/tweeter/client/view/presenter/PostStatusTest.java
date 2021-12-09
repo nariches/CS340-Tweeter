@@ -56,8 +56,6 @@ public class PostStatusTest {
             @Override
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 StatusService.PostStatusObserver observer = invocation.getArgument(2);
-//                Assert.assertEquals(mockAuthToken, invocation.getArgument(0));
-//                Assert.assertEquals(mockStatus, invocation.getArgument(1));
                 observer.postStatusSucceeded();
                 return null;
             }

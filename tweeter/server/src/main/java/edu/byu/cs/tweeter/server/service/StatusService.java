@@ -28,6 +28,9 @@ public class StatusService {
     public StatusService() {
         this.awsFactory = new AWSFactory();
     }
+    public StatusService(AWSFactory awsFactory) {
+        this.awsFactory = awsFactory;
+    }
 
     public FeedResponse getFeed(FeedRequest feedRequest) throws Exception {
         AuthToken currAuthToken = awsFactory.getAuthTokenDAO().getAuthToken(feedRequest.getAuthToken());

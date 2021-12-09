@@ -53,7 +53,7 @@ public class StatusService extends Service {
 
     public void postStatus(AuthToken authToken, Status newStatus, PostStatusObserver observer) {
         PostStatusTask statusTask = new PostStatusTask(authToken,
-                newStatus, new PostStatusHandler(observer));
+                newStatus, new PostStatusHandler(Looper.getMainLooper(), observer));
         executeTask(statusTask);
     }
 
@@ -113,6 +113,11 @@ public class StatusService extends Service {
     private class PostStatusHandler extends ServiceHandler {
 
         private PostStatusObserver observer;
+
+        public PostStatusHandler(Looper looper, PostStatusObserver observer) {
+            super(looper, observer);
+            this.observer = observer;
+        }
 
         public PostStatusHandler(PostStatusObserver observer) {
             super(observer);
