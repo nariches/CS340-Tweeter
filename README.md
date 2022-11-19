@@ -1,7 +1,8 @@
 Tweeter Android App
 
 Allows a user to post statuses, check their feed and story, and follow other users
-Written in Java using Android Studio and used Amazon AWS (Lambda, API Gateway, DynamoDB) for the back end
+Written in Java using Android Studio
+Uses Amazon AWS (Lambda, API Gateway, DynamoDB, Amazon SQS) for the back end
 
 Completed for CS 340 at Brigham Young University
 
